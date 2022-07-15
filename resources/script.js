@@ -1,3 +1,17 @@
+chrome.storage.sync.get(['jwtToken'], function(result) {
+  if(result.jwtToken){
+    const now = Date.now()
+    console.log(result.jwtToken)
+    const expiry = jwt_decode(result.jwtToken).exp * 1000;
+    if(expiry > now){
+      console.log(`jwt token still valid for ${(expiry - now) / 1000 / 60} minutes`)
+      $('.intro-container').hide()
+    }else{
+      console.log(`jwt token expired ${(now - expiry) / 1000 / 60} minutes ago`)
+    }
+  }
+});
+
 const exampleTags = [
   { name: "Entertainment", color: "#e6584e" },
   { name: "Programming", color: "#2ba9e3" },
@@ -44,28 +58,25 @@ $(".intro-option-back").on("click", function () {
 });
 
 const loginForm = {
-  email: $("#login-email"),
+  username: $("#login-username"),
   password: $("#login-password"),
 };
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 $("#login-button").on("click", function () {
-  const email = loginForm.email.val();
-  let shouldHideEmailError = true;
-  if (email.trim().length == 0) {
-    loginForm.email
+  const username = loginForm.username.val();
+  let shouldHideUsernameError = true;
+  if(username.trim().length == 0){
+    loginForm.username
       .next(".error-label")
-      .text("Remember to include your email!");
-    shouldHideEmailError = false;
-  } else if (!emailRegex.test(email)) {
-    loginForm.email
-      .next(".error-label")
-      .text("Hmm... that email doesn't look right");
-    shouldHideEmailError = false;
+      .text("Don't forget your username!");
+      shouldHideUsernameError = false;
   }
-  if (shouldHideEmailError) {
-    loginForm.email.next(".error-label").text("");
+  if(shouldHideUsernameError){
+    loginForm.username
+      .next(".error-label")
+      .text('');
   }
 
   const password = loginForm.password.val();
@@ -85,29 +96,64 @@ $("#login-button").on("click", function () {
     loginForm.password.next(".error-label").text("");
   }
 
-  if (shouldHideEmailError && shouldHidePasswordError) {
+  if (shouldHideUsernameError && shouldHidePasswordError) {
     $("#loading").show();
     $("#click-block").show();
     setTimeout(function () {
-      $("#loading").hide();
-      $("#click-block").hide();
-      let isAuthencated = true; //TODO
-      if (isAuthencated) {
-        $(".intro-container").fadeOut(function () {
-          $(".container").fadeIn();
-        });
-      }
-    }, 2000);
+      $.ajax({
+        url: 'http://localhost:8080/api/authenticate',
+        type: "POST",
+        data: {
+          username: username,
+          password: password,
+        },
+        success: function (data) {
+          console.log('success', data)
+          const jwt = data.token;
+          chrome.storage.sync.set({ jwtToken: jwt }, function () {
+            $("#loading").hide();
+            $("#click-block").hide();
+            $(".intro-container").fadeOut(function () {
+              $(".container").fadeIn();
+            });
+          });
+        }, error: function (data) {
+          console.log('error', data)
+          $("#loading").hide();
+          $("#click-block").hide();
+          const parsedData = JSON.parse(data.responseText)
+          const firstError = Object.values(parsedData.errors)[0]
+          $('#register-error').text(firstError)
+        }
+      })
+    }, 1000)
   }
 });
 
 const registerForm = {
+  username: $('#register-username'),
   email: $("#register-email"),
   password: $("#register-password"),
   confirmPassword: $("#register-password-confirm"),
 };
 
 $("#register-button").on("click", function () {
+  const username = registerForm.username.val();
+  let shouldHideUsernameError = true;
+  if (username.trim().length == 0) {
+    registerForm.username.next('.error-label').text(`You'll need a username!`)
+    shouldHideUsernameError = false;
+  } else if (username.trim().length < 4) {
+    registerForm.username.next('.error-label').html(`Your username must be at<br/> least 4 characters`)
+    shouldHideUsernameError = false;
+  } else if (username.trim().length > 64) {
+    registerForm.username.next('.error-label').text(`Your username is too long!`)
+    shouldHideUsernameError = false;
+  }
+  if (shouldHideUsernameError) {
+    registerForm.username.next('.error-label').text(``)
+  }
+
   const email = registerForm.email.val();
   let shouldHideEmailError = true;
   if (email.trim().length == 0) {
@@ -137,6 +183,11 @@ $("#register-button").on("click", function () {
       .next(".error-label")
       .html("Your password must be at least<br/> 6 characters!");
     shouldHidePasswordError = false;
+  } else if (password.length > 40) {
+    registerForm.password
+      .next(".error-label")
+      .html("Your password must less than<br/> 40 characters long");
+    shouldHidePasswordError = false;
   }
   if (shouldHidePasswordError) {
     registerForm.password.next(".error-label").text("");
@@ -155,22 +206,44 @@ $("#register-button").on("click", function () {
   }
 
   if (
+    shouldHideUsernameError &&
     shouldHideEmailError &&
     shouldHidePasswordError &&
     shouldHideConfirmPasswordError
   ) {
+    $("#register-error").text('')
     $("#loading").show();
     $("#click-block").show();
     setTimeout(function () {
-      $("#loading").hide();
-      $("#click-block").hide();
-      let isRegistered = true; //TODO
-      if (isRegistered) {
-        $(".intro-container").fadeOut(function () {
-          $(".container").fadeIn();
-        });
-      }
-    }, 2000);
+      $.ajax({
+        url: 'http://localhost:8080/api/register',
+        type: "POST",
+        data: {
+          username: username,
+          email: email,
+          password: password,
+          confirmpassword: confirmPassword
+        },
+        success: function (data) {
+          console.log('success', data)
+          const jwt = data.token;
+          chrome.storage.sync.set({ jwtToken: jwt }, function () {
+            $("#loading").hide();
+            $("#click-block").hide();
+            $(".intro-container").fadeOut(function () {
+              $(".container").fadeIn();
+            });
+          });
+        }, error: function (data) {
+          console.log('error', data)
+          $("#loading").hide();
+          $("#click-block").hide();
+          const parsedData = JSON.parse(data.responseText)
+          const firstError = Object.values(parsedData.errors)[0]
+          $('#register-error').text(firstError)
+        }
+      })
+    }, 1000)
   }
 });
 
@@ -196,8 +269,8 @@ $("#edit-review #review-text").on("input", function () {
 const addTagPopup = $("#add-tag-popup");
 const addTagList = $("#add-tag-list");
 
-$(addTagList).on('click', '.tag', function(){
-    $(this).find('.material-icons').toggle()
+$(addTagList).on('click', '.tag', function () {
+  $(this).find('.material-icons').toggle()
 })
 
 addTagPopup.on("click", function (e) {
