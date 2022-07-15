@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="resources/icons/icons.css" />
+    <link rel="stylesheet" href="resources/styles.css" />
+</head>
+
+<body>
+    <div class="logo">
+        <img src="resources/images/logo.PNG" height="25" draggable="false" />
+    </div>
+    <div class="intro-container">
+        <div class="intro">
+            <div class="logo">
+                <img src="resources/images/logo.PNG" height="50" draggable="false" />
+            </div>
+            <div id="intro-options">
+                <h2 class="border-left-transition" data-key="login">Login</h2>
+                <p style="padding-bottom: 5px">or</p>
+                <h2 class="border-left-transition" data-key="register">Register</h2>
+            </div>
+        </div>
+        <div class="intro-option" id="login">
+            <span class="material-icons intro-option-back">
+                arrow_back
+            </span>
+            <h1>Welcome back!</h1>
+            <div class="intro-option-form">
+                <input placeholder="Email">
+                <input placeholder="Password">
+            </div>
+            <div class="intro-option-submit-container">
+                <span id="login-button" class="intro-option-submit border-left-transition">Log in</span>
+            </div>
+        </div>
+        <div class="intro-option" id="register">
+            <span class="material-icons intro-option-back">
+                arrow_back
+            </span>
+            <h1>Welcome!</h1>
+            <div class="intro-option-form">
+                <input placeholder="Email">
+                <input placeholder="Password">
+                <input placeholder="Confirm Password">
+            </div>
+            <div class="intro-option-submit-container">
+                <span id="register-button" class="intro-option-submit border-left-transition">Let's go!</span>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div id="nav">
+            <div class="nav-item active" data-key="reviews">Reviews</div>
+            <div class="nav-item" data-key="your-public-reviews">Your Public Reviews</div>
+            <div class="nav-item" data-key="your-private-reviews">Your Private Reviews</div>
+        </div>
+        <div id="nav-content">
+            <div class="nav-content active" id="reviews" data-key="reviews">
+                <h3>Website rating</h3>
+                <div id="url"></div>
+                <div class="rating-container">
+                    <div class="rating">
+                        <div class="rating-value">3</div>
+                        <div class="rating-stars">
+                            <span class="material-icons">star</span>
+                            <span class="material-icons">star</span>
+                            <span class="material-icons">star</span>
+                            <span class="material-icons">star_border</span>
+                            <span class="material-icons">star_border</span>
+                        </div>
+                    </div>
+                    <div class="rating-distribution">
+                        <div class="rating-bar-container">
+                            <div class="rating-value">5</div>
+                            <div class="rating-bar">
+                                <div style="width: 40%"></div>
+                            </div>
+                        </div>
+                        <div class="rating-bar-container">
+                            <div class="rating-value">4</div>
+                            <div class="rating-bar">
+                                <div style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="rating-bar-container">
+                            <div class="rating-value">3</div>
+                            <div class="rating-bar">
+                                <div style="width: 10%"></div>
+                            </div>
+                        </div>
+                        <div class="rating-bar-container">
+                            <div class="rating-value">2</div>
+                            <div class="rating-bar">
+                                <div style="width: 20%"></div>
+                            </div>
+                        </div>
+                        <div class="rating-bar-container">
+                            <div class="rating-value">1</div>
+                            <div class="rating-bar">
+                                <div style="width: 30%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <h3 style="margin-bottom: 20px">Reviews</h3>
+                <div class="reviews">
+                    <div class="review">
+                        <div class="review-metadata">
+                            <div class="review-author">Grant Ou</div>
+                            <div class="review-date">July 7, 2022</div>
+                        </div>
+                        <div class="review-stars">
+                            <span class="material-icons">star</span>
+                            <span class="material-icons">star</span>
+                            <span class="material-icons">star</span>
+                            <span class="material-icons">star_border</span>
+                            <span class="material-icons">star_border</span>
+                        </div>
+                        <div class="review-message">
+                            This website kinda sucks xd
+                        </div>
+                    </div>
+                    <div class="review">
+                        <div class="review-metadata">
+                            <div class="review-author">Grant Ou</div>
+                            <div class="review-date">July 7, 2022</div>
+                        </div>
+                        <div class="review-stars">
+                            <span class="material-icons">star</span>
+                            <span class="material-icons">star</span>
+                            <span class="material-icons">star</span>
+                            <span class="material-icons">star_border</span>
+                            <span class="material-icons">star_border</span>
+                        </div>
+                        <div class="review-message">
+                            This website kinda sucks xd
+                        </div>
+                    </div>
+                    <div class="review">
+                        <div class="review-metadata">
+                            <div class="review-author">Grant Ou</div>
+                            <div class="review-date">July 7, 2022</div>
+                        </div>
+                        <div class="review-stars">
+                            <span class="material-icons">star</span>
+                            <span class="material-icons">star</span>
+                            <span class="material-icons">star</span>
+                            <span class="material-icons">star_border</span>
+                            <span class="material-icons">star_border</span>
+                        </div>
+                        <div class="review-message">
+                            This website kinda sucks xd
+                        </div>
+                    </div>
+                    <div class="review">
+                        <div class="review-metadata">
+                            <div class="review-author">Grant Ou</div>
+                            <div class="review-date">July 7, 2022</div>
+                        </div>
+                        <div class="review-stars">
+                            <span class="material-icons">star</span>
+                            <span class="material-icons">star</span>
+                            <span class="material-icons">star</span>
+                            <span class="material-icons">star_border</span>
+                            <span class="material-icons">star_border</span>
+                        </div>
+                        <div class="review-message">
+                            This website kinda sucks xd
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nav-content" id="your-public-reviews">
+                Your public reviews
+            </div>
+            <div class="nav-content" id="your-private-reviews">
+                Your private reviews
+            </div>
+        </div>
+    </div>
+    <script src="resources/jquery-3.6.0.min.js"></script>
+    <script src="resources/script.js"></script>
+</body>
+
+</html>

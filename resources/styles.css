@@ -1,0 +1,315 @@
+@import "fonts/roboto/roboto.css";
+
+html,
+body {
+  margin: 0;
+  width: 800px;
+  height: 500px;
+}
+
+body {
+  height: 100%;
+  font-family: "Roboto";
+  font-size: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.material-icons {
+  user-select: none;
+}
+
+hr {
+  border: none;
+  height: 1px;
+  background-color: #d8d8d8;
+}
+
+.border-left-transition::after {
+  display: block;
+  content: "";
+  border-bottom: solid 3px black;
+  transform: scaleX(0);
+  transition: transform 250ms ease-in-out;
+}
+
+.border-left-transition:hover::after {
+  transform: scaleX(1);
+}
+
+/* login */
+
+.intro-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  z-index: 1;
+  background-color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.intro-container .intro h2 {
+  font-weight: 300;
+  cursor: pointer;
+  padding-bottom: 5px;
+}
+
+.intro-container #intro-options {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.intro-container .intro-option {
+  display: none;
+}
+
+.intro-container .intro-option h1 {
+  font-weight: 300;
+}
+
+.intro-container .intro-option .intro-option-form{
+  display: flex;
+  flex-direction: column;
+}
+
+.intro-container .intro-option .intro-option-form input {
+  padding: 10px 15px;
+  margin-bottom: 10px;
+  font-size: 1em;
+  outline: none;
+  border: none;
+  border-bottom: 2px solid #c9c9c9;
+  font-family: 'Roboto';
+  transition: 0.2s;
+}
+
+.intro-container .intro-option .intro-option-form input:focus{
+  border-color: #5a5a5a;
+}
+
+.intro-container .intro-option .intro-option-back{
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  cursor: pointer;
+}
+
+.intro-container .intro-option .intro-option-submit-container{
+  display: flex;
+  justify-content: center;
+  margin-top: 17px;
+}
+
+.intro-container .intro-option .intro-option-submit{
+  font-size: 25px;
+  cursor: pointer;
+  font-weight: 300;
+}
+
+/* home container */
+
+.container {
+  display: flex;
+  height: 100%;
+  padding: 0 20px;
+  padding-bottom: 20px;
+  box-sizing: border-box;
+}
+
+.logo {
+  text-align: center;
+  padding-top: 7px;
+}
+
+.logo img {
+  margin: 5px;
+  user-select: none;
+}
+
+#url {
+  color: #808080;
+  font-size: 14px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  direction: rtl;
+  text-align: left;
+}
+
+/* #footer {
+  text-align: center;
+  font-size: 13px;
+  color: #808080;
+  margin-top: 20px;
+  margin-bottom: 10px;
+} */
+
+#nav {
+  width: 200px;
+  background-color: #f7f7f7;
+  margin: 10px;
+  margin-top: 0;
+  border-radius: 5px;
+  height: 100%;
+  overflow: hidden;
+}
+
+#nav .nav-item {
+  padding: 20px 20px;
+  font-weight: 300;
+  cursor: pointer;
+}
+
+#nav .nav-item.active {
+  background-color: #0364df;
+  color: white;
+}
+
+#nav-content {
+  width: 100%;
+  background-color: #f7f7f7;
+  margin: 10px;
+  margin-top: 0;
+  border-radius: 5px;
+  height: 100%;
+  overflow: auto;
+}
+
+#nav-content::-webkit-scrollbar {
+  width: 10px;
+}
+
+#nav-content::-webkit-scrollbar-thumb {
+  background: #c2c2c2;
+  border: 10px solid transparent;
+  width: 10px;
+  border-radius: 15px;
+}
+
+#nav-content::-webkit-scrollbar-thumb:active {
+  background: #808080;
+}
+
+#nav-content .nav-content {
+  display: none;
+  padding: 20px;
+}
+
+#nav-content .nav-content.active {
+  display: block;
+}
+
+#reviews h3 {
+  margin: 0;
+  font-weight: 300;
+}
+
+#reviews .rating-container {
+  display: flex;
+  align-items: center;
+  margin: 20px 0;
+}
+
+#reviews .rating-container .rating {
+  text-align: center;
+  margin-right: 20px;
+}
+
+#reviews .rating-container .rating .rating-value {
+  font-size: 50px;
+}
+
+#reviews .rating-container .rating .rating-stars {
+  user-select: none;
+}
+
+#reviews .rating-container .rating .rating-stars .material-icons {
+  font-size: 15px;
+  color: #fbbc04;
+}
+
+#reviews .rating-container .rating-distribution {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+#reviews .rating-container .rating-distribution .rating-bar-container {
+  display: flex;
+  align-items: center;
+}
+
+#reviews
+  .rating-container
+  .rating-distribution
+  .rating-bar-container
+  .rating-value {
+  font-size: 13px;
+  color: grey;
+}
+
+#reviews
+  .rating-container
+  .rating-distribution
+  .rating-bar-container
+  .rating-bar {
+  width: 100%;
+  height: 10px;
+  margin: 2.5px;
+  margin-left: 7.5px;
+  background-color: white;
+  border-radius: 5px;
+  overflow: hidden;
+}
+#reviews
+  .rating-container
+  .rating-distribution
+  .rating-bar-container
+  .rating-bar
+  div {
+  background-color: #fbbc04;
+  height: 100%;
+  border-radius: 5px;
+}
+
+.reviews .review {
+  background-color: white;
+  padding: 7.5px 15px;
+}
+.reviews .review .review-metadata {
+  display: flex;
+  font-size: 15px;
+}
+
+.reviews .review .review-metadata .review-author {
+  margin-right: 15px;
+  text-decoration: underline;
+}
+
+.reviews .review .review-metadata .review-date {
+  color: #808080;
+}
+
+.reviews .review .review-stars {
+  margin: 5px 0;
+  display: flex;
+}
+
+.reviews .review .review-stars .material-icons {
+  font-size: 15px;
+  color: #fbbc04;
+}
+
+.reviews .review {
+  margin-bottom: 10px;
+}
+
+.reviews .review:last-child {
+  margin-bottom: 0;
+}
