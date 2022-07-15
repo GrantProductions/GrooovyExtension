@@ -37,6 +37,38 @@ hr {
   transform: scaleX(1);
 }
 
+#loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background-color: #8eb7fa;
+  display: none;
+  z-index: 3;
+}
+
+#loading-bar {
+  background-color: #4286f4;
+  position: absolute;
+  top: 0;
+  left: -10%;
+  width: 20%;
+  height: 5px;
+  animation: loadingBar ease-in-out 2s infinite;
+}
+
+#click-block {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
 /* login */
 
 .intro-container {
@@ -73,7 +105,7 @@ hr {
   font-weight: 300;
 }
 
-.intro-container .intro-option .intro-option-form{
+.intro-container .intro-option .intro-option-form {
   display: flex;
   flex-direction: column;
 }
@@ -85,33 +117,38 @@ hr {
   outline: none;
   border: none;
   border-bottom: 2px solid #c9c9c9;
-  font-family: 'Roboto';
+  font-family: "Roboto";
   transition: 0.2s;
 }
 
-.intro-container .intro-option .intro-option-form input:focus{
+.intro-container .intro-option .intro-option-form input:focus {
   border-color: #5a5a5a;
 }
 
-.intro-container .intro-option .intro-option-back{
+.intro-container .intro-option .intro-option-back {
   position: fixed;
   top: 20px;
   left: 20px;
   cursor: pointer;
 }
 
-.intro-container .intro-option .intro-option-submit-container{
+.intro-container .intro-option .intro-option-submit-container {
   display: flex;
   justify-content: center;
   margin-top: 17px;
 }
 
-.intro-container .intro-option .intro-option-submit{
+.intro-container .intro-option .intro-option-submit {
   font-size: 25px;
   cursor: pointer;
   font-weight: 300;
 }
 
+.error-label {
+  color: red;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
 /* home container */
 
 .container {
@@ -203,6 +240,28 @@ hr {
 
 #nav-content .nav-content.active {
   display: block;
+}
+
+#reviews-header {
+  display: flex;
+  justify-content: space-between;
+}
+
+#reviews-header #new-review {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid;
+  padding: 2px 6px;
+  font-size: 13px;
+  margin-bottom: 20px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+#reviews-header #new-review .material-icons {
+  font-size: 15px;
+  margin-right: 2px;
 }
 
 #reviews h3 {
@@ -312,4 +371,125 @@ hr {
 
 .reviews .review:last-child {
   margin-bottom: 0;
+}
+
+/* new/edit revew */
+
+#edit-review h3 {
+  font-weight: 300;
+  margin: 0;
+}
+
+#edit-review .stars {
+  color: rgba(0, 0, 0, 0.7);
+  user-select: none;
+}
+
+#edit-review .stars .material-icons {
+  cursor: pointer;
+}
+
+#edit-review .stars .material-icons.selected {
+  color: #fbbc04;
+}
+
+#edit-review #review-text {
+  width: 100%;
+  box-sizing: border-box;
+  border: none;
+  border-bottom: 2px solid #0364df;
+  border-radius: 5px 5px 0 0;
+  font-size: 1em;
+  resize: none;
+  outline: none;
+  font-family: "Roboto";
+  padding: 10px 15px;
+}
+
+#edit-review #review-tags {
+  display: flex;
+  font-size: 14px;
+}
+
+#edit-review #review-tags .tags {
+  flex: 1;
+  margin-left: 10px;
+}
+
+#edit-review #review-tags #add-tag {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+}
+
+#edit-review #review-tags #add-tag .material-icons {
+  font-size: 17px;
+  margin-right: 2px;
+}
+
+#edit-review #review-tags #add-tag .label {
+  text-decoration: underline;
+  user-select: none;
+}
+
+#edit-review #review-tags #add-tag #add-tag-popup {
+  position: absolute;
+  top: 30px;
+  right: 0;
+  background-color: white;
+  padding: 10px;
+  border-radius: 5px;
+  display: none;
+  cursor: initial;
+}
+
+#edit-review #review-tags #add-tag #add-tag-popup #add-tag-list{
+  margin-top: 15px;
+}
+
+#edit-review #review-tags #add-tag #add-tag-popup #add-tag-list .selected-tag{
+  display: none;
+  margin-right: 5px;
+}
+
+#edit-review #review-tags #add-tag #add-tag-popup #add-tag-list .tag{
+  display: flex;
+  align-items: center;
+  padding: 5px 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+#edit-review #review-tags #add-tag #add-tag-popup #add-tag-list .tag:hover{
+  background-color: #ededed;
+}
+
+#edit-review #review-tags #add-tag #add-tag-popup #add-tag-popup-search {
+  padding: 6px 14px;
+  border: none;
+  border-bottom: 2px solid #0364df;
+  font-size: 1em;
+  background-color: #f7f7f7;
+  border-radius: 5px 5px 0 0;
+  outline: none;
+  font-family: "Roboto";
+}
+
+/* animations */
+
+@keyframes loadingBar {
+  0% {
+    left: -10%;
+    width: 0%;
+  }
+
+  50% {
+    width: 50%;
+  }
+
+  100% {
+    left: 100%;
+    width: 0%;
+  }
 }
