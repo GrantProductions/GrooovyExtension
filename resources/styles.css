@@ -25,6 +25,13 @@ hr {
   background-color: #d8d8d8;
 }
 
+.back-director {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  cursor: pointer;
+}
+
 .border-left-transition::after {
   display: block;
   content: "";
@@ -180,13 +187,6 @@ hr {
   border-color: #5a5a5a;
 }
 
-.intro-container .intro-option .intro-option-back {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  cursor: pointer;
-}
-
 .intro-container .intro-option .intro-option-submit-container {
   display: flex;
   justify-content: center;
@@ -270,6 +270,7 @@ hr {
   margin-top: 0;
   border-radius: 5px;
   height: 100%;
+  position: relative;
   overflow: auto;
 }
 
@@ -297,26 +298,112 @@ hr {
   display: block;
 }
 
+/* reviews section */
+
+#reviews {
+  position: relative;
+}
+
 #reviews-header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
 }
 
-#reviews-header #new-review {
+#reviews-header #reviews-sort {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  background-color: white;
+  font-size: 15px;
+  border-radius: 5px;
+  border: 1px solid #ededed;
+  position: relative;
+  transition: 0.2s;
+  cursor: pointer;
+}
+
+#reviews-header #reviews-sort:hover {
+  background-color: #fbfbfb;
+}
+
+#reviews-header #reviews-sort:active {
+  background-color: #f7f7f7;
+}
+
+#reviews-header #reviews-sort #reviews-sort-popup {
+  background-color: white;
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  z-index: 1;
+  border-radius: 5px;
+  border: 1px solid rgb(237, 237, 237);
+  width: 0;
+  height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 5px 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  display: none;
+}
+
+#reviews-header #reviews-sort #reviews-sort-popup .reviews-sort-option {
+  padding: 0 14px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+#reviews-header
+  #reviews-sort
+  #reviews-sort-popup
+  .reviews-sort-option
+  .material-icons {
+  font-size: 16px;
+  margin-right: 5px;
+  display: none;
+}
+
+#reviews-header #reviews-sort #reviews-sort-popup .reviews-sort-option:hover {
+  background-color: #ededed;
+}
+
+#reviews-header #reviews-sort .material-icons {
+  color: #0364df;
+  font-size: 20px;
+  margin-right: 10px;
+}
+
+#reviews #reviews-count {
+  text-align: right;
+  font-size: 12px;
+  text-transform: uppercase;
+  color: grey;
+  margin-top: 10px;
+}
+
+#reviews #new-review {
+  position: absolute;
+  top: 20px;
+  right: 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   border: 1px solid;
-  padding: 2px 6px;
-  font-size: 13px;
-  margin-bottom: 20px;
+  border-color: #0364df;
+  color: #0364df;
+  padding: 5px 15px;
+  padding-left: 10px;
   cursor: pointer;
-  border-radius: 4px;
 }
 
-#reviews-header #new-review .material-icons {
+#reviews #new-review .material-icons {
   font-size: 15px;
-  margin-right: 2px;
+  margin-right: 5px;
 }
 
 #reviews h3 {
@@ -327,7 +414,8 @@ hr {
 #reviews .rating-container {
   display: flex;
   align-items: center;
-  margin: 20px 0;
+  margin-bottom: 20px;
+  user-select: none;
 }
 
 #reviews .rating-container .rating {
@@ -390,6 +478,7 @@ hr {
   background-color: #fbbc04;
   height: 100%;
   border-radius: 5px;
+  width: 0%;
 }
 
 .reviews .review {
@@ -408,6 +497,7 @@ hr {
 
 .reviews .review .review-metadata .review-date {
   color: #808080;
+  cursor: default;
 }
 
 .reviews .review .review-stars {
@@ -441,6 +531,10 @@ hr {
   margin: 0;
 }
 
+#edit-review #edit-review-title {
+  margin-left: 35px;
+}
+
 #edit-review .stars {
   color: rgba(0, 0, 0, 0.7);
   user-select: none;
@@ -467,10 +561,14 @@ hr {
   padding: 10px 15px;
 }
 
-#edit-review #submit-review {
+#edit-review #review-footer {
   position: absolute;
   bottom: 20px;
-  right: 20px;
+  left: 0;
+  width: 100%;
+}
+
+#edit-review #submit-review {
   padding: 7.5px 12.5px;
   font-size: 1em;
   font-family: "Roboto";
@@ -515,6 +613,7 @@ hr {
   box-sizing: border-box;
   box-shadow: 0 0 3px black;
   border-radius: 0 0 3px 3px;
+  z-index: 1;
   display: none;
 }
 
@@ -691,17 +790,20 @@ hr {
   font-weight: 300;
 }
 
-#edit-review #new-tag-popup #new-tag-privacy-toggle {
+#edit-review #new-tag-popup .privacy-toggle {
+  margin: 0 8px;
+  margin-top: 20px;
+}
+
+#edit-review .privacy-toggle {
   display: flex;
   justify-content: space-around;
   border-radius: 5px;
   overflow: hidden;
-  margin: 0 8px;
-  margin-top: 20px;
   cursor: pointer;
 }
 
-#edit-review #new-tag-popup #new-tag-privacy-toggle .new-tag-privacy-option {
+#edit-review .privacy-toggle .privacy-option {
   background-color: #d9eaff;
   flex: 1;
   padding: 5px 0;
@@ -710,20 +812,73 @@ hr {
   align-items: center;
 }
 
-#edit-review
-  #new-tag-popup
-  #new-tag-privacy-toggle
-  .new-tag-privacy-option.active {
+#edit-review .privacy-toggle .privacy-option.active {
   background-color: #aad0ff;
 }
 
-#edit-review
-  #new-tag-popup
-  #new-tag-privacy-toggle
-  .new-tag-privacy-option
-  .material-icons {
+#edit-review .privacy-toggle .privacy-option .material-icons {
   font-size: 15px;
   margin-right: 5px;
+}
+
+#edit-review #review-footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+#edit-review #review-footer .privacy-toggle {
+  width: 300px;
+}
+
+/* notifications */
+
+#notifications {
+  position: fixed;
+  right: 0;
+  bottom: 10px;
+  z-index: 2;
+}
+
+#notifications .notification {
+  border-right: none;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 0 2px black;
+  position: relative;
+  margin-top: 20px;
+}
+
+#notifications .notification .icon {
+  font-size: 16px;
+  padding: 17px;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#notifications .notification .icon .material-icons {
+  font-size: 18px;
+}
+
+#notifications .notification .message {
+  background-color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 17px 17px;
+  padding-right: 40px;
+  font-size: 15px;
+}
+
+#notifications .notification .notification-close {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  font-size: 15px;
+  cursor: pointer;
 }
 
 /* animations */
