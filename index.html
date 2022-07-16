@@ -72,11 +72,11 @@
   </div>
   <div class="container">
     <div id="nav">
-      <div class="nav-item" data-key="reviews">Reviews</div>
+      <div class="nav-item active" data-key="reviews">Reviews</div>
       <div class="nav-item" data-key="your-reviews">
         Your Reviews
       </div>
-      <div class="nav-item active" data-key="explorer">
+      <div class="nav-item" data-key="explorer">
         Explorer
       </div>
     </div>
@@ -155,7 +155,7 @@
           <button id="submit-review">Submit</button>
         </div>
       </div>
-      <div class="nav-content" id="reviews" data-key="reviews">
+      <div class="nav-content active" id="reviews" data-key="reviews">
         <div id="new-review" class="page-director" data-key="edit-review">
           <span class="material-icons">add</span> Review This Site
         </div>
@@ -209,7 +209,7 @@
           </div>
         </div>
         <hr />
-        <div id="reviews-header">
+        <div class="reviews-header">
           <h3>Reviews</h3>
           <div id="reviews-sort" class="expandable-popup-trigger" data-key="reviews-sort-popup">
             <span class="material-icons">
@@ -262,7 +262,7 @@
         </div>
         <div class="reviews"></div>
       </div>
-      <div class="nav-content active" id="explorer">
+      <div class="nav-content" id="explorer">
         <div id="url-bar"></div>
         <div id="url-results">
           <div class="rating">
@@ -313,6 +313,25 @@
             </div>
           </div>
           <hr />
+          <div class="reviews-header">
+            <h3>Reviews</h3>
+            <div id="explorer-reviews-sort" class="expandable-popup-trigger" data-key="explorer-reviews-sort-popup">
+              <span class="material-icons">
+                sort
+              </span>
+              Sort
+              <div id="explorer-reviews-sort-popup" class="expandable-popup">
+                <div class="expandable-option" data-def="recent"><span class="material-icons"
+                    style="display: block">check</span><span class="expandable-option-label">Recent</span></div>
+                <div class="expandable-option" data-def="older"><span class="material-icons">check</span><span
+                    class="expandable-option-label">Older</span></div>
+                <div class="expandable-option" data-def="highest rating"><span class="material-icons">check</span><span
+                    class="expandable-option-label">Highest rating</span></div>
+                <div class="expandable-option" data-def="lowest rating"><span class="material-icons">check</span><span
+                    class="expandable-option-label">Lowest rating</span></div>
+              </div>
+            </div>
+          </div>
           <div class="reviews"></div>
         </div>
       </div>

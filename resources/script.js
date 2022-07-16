@@ -44,24 +44,23 @@ chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
       try {
         expiry = jwt_decode(result.jwtToken).exp * 1000;
       } catch (err) {
-        console.log("bad token");
         validToken = false;
       }
       if (validToken) {
         if (expiry > now) {
-          console.log("RESULT", result);
           console.log(
             `jwt token still valid for ${(expiry - now) / 1000 / 60} minutes`
           );
           $(".intro-container").hide();
-          jwtToken = result.jwtToken;
           $(document).ready(function () {
             initHomepage(result.username);
+            jwtToken = result.jwtToken;
+            barURL = currentURL;
+            barChunks = parseURLIntoChunks(barURL)
+            if (barChunks) {
+              convertChunksToElems(barChunks);
+            }
           });
-        } else {
-          console.log(
-            `jwt token expired ${(now - expiry) / 1000 / 60} minutes ago`
-          );
         }
       }
     }
@@ -78,10 +77,10 @@ if (skipIntroForDev) {
 }
 
 const navItemInitFunctions = {
-  reviews: () => loadSiteReviews(currentURL, reviewsSection, reviews),
+  reviews: () => loadSiteReviews(currentURL, reviewsSection, reviews, null, null, $(`<span class="empty-label">No reviews found. Want to <span class="link-suggestion page-director" data-key="edit-review">create one</span>?</span>`)),
   "your-reviews": loadUserReviews,
   explorer: () =>
-    loadSiteReviews(currentURL, urlResults, urlResultsReviewsList),
+    getURLResults(currentURL)
 };
 
 $(document).on("click", ".nav-item, .page-director", function () {
@@ -436,7 +435,7 @@ const invertColorToBW = (hex) =>
   parseInt(hex.substring(0, 2), 16) * 0.299 +
     parseInt(hex.substring(2, 4), 16) * 0.587 +
     parseInt(hex.substring(4, 6), 16) * 0.114 >
-  186
+    186
     ? "#000000"
     : "#FFFFFF";
 
@@ -509,7 +508,7 @@ addTagInput.on("input", function () {
 function createTagElement(name, color, isPrivate, id) {
   const tagElem = $(
     `<div class="tag" data-private=${isPrivate}><span class="material-icons">${
-      isPrivate ? "visibility_off" : "visibility"
+    isPrivate ? "visibility_off" : "visibility"
     }</span><span class="tag-name">${name}</span></div>`
   );
   const invertedColor = invertColorToBW(color);
@@ -670,7 +669,7 @@ $("#new-tag-button").on("click", function () {
 function initHomepage(username) {
   $(document).ready(function () {
     $("#profile-name").text(username);
-    loadSiteReviews(currentURL, reviewsSection, reviews);
+    loadSiteReviews(currentURL, reviewsSection, reviews, null, null, $(`<span class="empty-label">No reviews found. Want to <span class="link-suggestion page-director" data-key="edit-review">create one</span>?</span>`));
   });
 }
 
@@ -685,7 +684,8 @@ function loadSiteReviews(
   reviewsMetadataContainer,
   reviewsListContainer,
   sortOption,
-  callbackOnFinish
+  callbackOnFinish,
+  noReviewsLabelElement
 ) {
   startLoading(navContentArea);
   setTimeout(function () {
@@ -703,10 +703,10 @@ function loadSiteReviews(
       success: function (data) {
         reviews.empty();
         processReviewsMetadata(data.data, reviewsMetadataContainer);
-        processReviewsData(data.data.reviews, reviewsListContainer);
+        processReviewsData(data.data.reviews, reviewsListContainer, noReviewsLabelElement);
         finishLoading(navContentArea);
         if (callbackOnFinish) {
-          callbackOnFinish(true);
+          callbackOnFinish(true, data.data);
         }
       },
       error: function (data) {
@@ -716,7 +716,7 @@ function loadSiteReviews(
           10000
         );
         if (callbackOnFinish) {
-          callbackOnFinish(false);
+          callbackOnFinish(false, data.data);
         }
       },
     });
@@ -748,7 +748,7 @@ function processReviewsMetadata(data, container) {
   websiteReviewStars.html("star_border");
   const numOfFullStars = Math.floor(data.averageRating);
   const firstFullStars = $(
-    ".rating-container .rating .rating-stars .material-icons",
+    ".rating .rating-container .rating-stars .material-icons",
     container
   ).slice(0, numOfFullStars);
   firstFullStars.html("star");
@@ -756,6 +756,7 @@ function processReviewsMetadata(data, container) {
     firstFullStars.last().next(".material-icons").html("star_half");
   }
 }
+
 
 function processReviewsData(data, container, includeReviewURL) {
   const now = Date.now();
@@ -765,11 +766,11 @@ function processReviewsData(data, container, includeReviewURL) {
       '<i class="empty-label">No reviews made yet. Want to <span class="link-suggestion page-director" data-key="edit-review">be the first</span>?</i>'
     );
   }
-
+  container.empty()
   data.forEach((review) => {
     const reviewElement = $(
       `<div class="review"><div class="review-metadata"><div class="review-author"></div><div class="review-date"></div>${
-        includeReviewURL ? '<div class="review-url"></div>' : ""
+      includeReviewURL ? '<div class="review-url"></div>' : ""
       }</div><div class="review-stars"><span class="material-icons">star_border</span><span class="material-icons">star_border</span><span class="material-icons">star_border</span><span class="material-icons">star_border</span><span class="material-icons">star_border</span></div><div class="review-message"></div><div class="tags-area"><div class="tags-label"><span class="material-icons">sell</span><div>Tags:</div></div><div class="tags"></div></div></div>`
     );
     reviewElement
@@ -814,6 +815,9 @@ function processReviewsData(data, container, includeReviewURL) {
     reviewElement.find(".review-message").text(review.text);
     container.append(reviewElement);
   });
+  if (data.length == 0) {
+    container.append(includeReviewURL)
+  }
 }
 
 /* reviews sort */
@@ -878,7 +882,6 @@ function loadUserReviews(sortOption, tagFilter, callback) {
         }
         finishLoading(userReviewsSection);
         if (data.success) {
-          userReviewsReviewsArea.empty();
           processReviewsData(data.data, userReviewsReviewsArea, true);
           if (callback) {
             callback(true);
@@ -1004,9 +1007,9 @@ function renderTagsDropdown(data) {
   Object.values(tags).forEach((tag) => {
     const tagElem = $(
       `<div class="expandable-option" data-def="recent" data-id="${
-        tag.id
+      tag.id
       }"><span class="material-icons">check</span><div class="expandable-option-label"><span class="material-icons">${
-        tag.private ? "visibility_off" : "visibility"
+      tag.private ? "visibility_off" : "visibility"
       }</span><span class="expandable-option-label-text"></span></div></div>`
     );
 
@@ -1055,12 +1058,11 @@ $(userReviewsTagFilterPopup).on("click", ".expandable-option", function () {
 
 /* explorer */
 
-let barURL = currentURL;
-let barChunks = parseURLIntoChunks(barURL);
+let barURL;
+let barChunks;
 
 const urlBar = $("#explorer #url-bar");
 
-convertChunksToElems(barChunks);
 urlBar.on("click", function () {
   if (urlBar.prop("contenteditable") != "true") {
     urlBar.attr("contenteditable", true).focus().empty().text(barURL);
@@ -1088,20 +1090,30 @@ urlBar.on("keydown", function (e) {
   if (e.keyCode == 13 && urlBar.prop("contenteditable") == "true") {
     urlBar.attr("contenteditable", false);
     const newURL = urlBar.text();
-    barURL = newURL;
-    urlBar.empty();
-    convertChunksToElems(parseURLIntoChunks(newURL));
-    getURLResults(barURL);
+    const chunks = parseURLIntoChunks(newURL)
+    if (chunks) {
+      barURL = newURL;
+      urlBar.empty();
+
+      convertChunksToElems(chunks);
+      barChunks = chunks;
+      getURLResults(barURL);
+    }
   }
 });
 
 function parseURLIntoChunks(url) {
-  const parsedURL = new URL(url);
-  return [
-    parsedURL.protocol,
-    parsedURL.hostname,
-    ...parsedURL.pathname.split("/").filter((e) => e),
-  ];
+  try {
+    const parsedURL = new URL(url);
+    return [
+      parsedURL.protocol,
+      parsedURL.hostname,
+      ...parsedURL.pathname.split("/").filter((e) => e),
+    ];
+  } catch (err) {
+    showErrorMessage('Explorer: Invalid URL', 5000)
+    return null;
+  }
 }
 
 function convertChunksToElems(chunks) {
@@ -1128,10 +1140,42 @@ $(document).on("click", function (e) {
 });
 
 const urlResults = $("#url-results");
+const urlResultsRating = $('.rating', urlResults)
 const urlResultsReviewsList = $(".reviews", urlResults);
 function getURLResults(url) {
   urlResultsReviewsList.empty();
-  loadSiteReviews(url, urlResults, urlResultsReviewsList);
+  loadExplorerReviews(url, null, function (didSucceed, data) {
+    if (didSucceed) {
+      if (data.reviews.length == 0) {
+        urlResultsRating.hide()
+        urlResultsReviewsList.html(`<i class="empty-label">No reviews for this site</i>`)
+      } else {
+        urlResultsRating.show()
+      }
+    }
+  });
+}
+
+const explorerReviewsSortPopup = $('#explorer #explorer-reviews-sort #explorer-reviews-sort-popup')
+const explorerReviewsSortOptions = $('.expandable-option', explorerReviewsSortPopup)
+
+explorerReviewsSortOptions.on('click', function (e) {
+  const sortOption = $(this).data('def');
+  closeExpandablePopup(explorerReviewsSortPopup)
+  e.stopPropagation()
+  loadExplorerReviews(currentURL, sortOption, function (didSucceed, data) {
+    if (didSucceed) {
+      if (data.reviews.length == 0) {
+        urlResultsReviewsList.html(`<i class="empty-label">No reviews for this site</i>`)
+      }
+      explorerReviewsSortOptions.find('.material-icons').hide()
+      explorerReviewsSortOptions.filter(`[data-def="${sortOption}"]`).find('.material-icons').show();
+    }
+  })
+})
+
+function loadExplorerReviews(url, sortOption, callback) {
+  loadSiteReviews(url, urlResults, urlResultsReviewsList, sortOption, callback)
 }
 
 /* general */
@@ -1155,6 +1199,10 @@ $(document).on("click", function (e) {
 
   if (!e.target.closest("#your-reviews-tag-filter-popup")) {
     closeExpandablePopup(userReviewsTagFilterPopup);
+  }
+
+  if (!e.target.closest('#explorer-reviews-sort-popup')) {
+    closeExpandablePopup(explorerReviewsSortPopup)
   }
 });
 
