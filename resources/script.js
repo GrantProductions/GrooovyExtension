@@ -370,6 +370,7 @@ const reviewTags = $('#edit-review .tags')
 
 tagSuggestions.on('click', '.tag', function (e) {
   $(e.target.closest('.tag')).appendTo(reviewTags)
+  reviewTags.scrollTop(reviewTags.height())
   tagSuggestions.empty().hide()
   addTagInput.val('')
 })

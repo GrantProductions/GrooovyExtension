@@ -273,18 +273,18 @@ hr {
   overflow: auto;
 }
 
-#nav-content::-webkit-scrollbar {
+::-webkit-scrollbar {
   width: 10px;
 }
 
-#nav-content::-webkit-scrollbar-thumb {
+::-webkit-scrollbar-thumb {
   background: #c2c2c2;
   border: 10px solid transparent;
   width: 10px;
   border-radius: 15px;
 }
 
-#nav-content::-webkit-scrollbar-thumb:active {
+::-webkit-scrollbar-thumb:active {
   background: #808080;
 }
 
@@ -552,6 +552,7 @@ hr {
   display: flex;
   flex-wrap: wrap;
   overflow: auto;
+  max-height: 75px;
 }
 
 #edit-review #tags-heading {
