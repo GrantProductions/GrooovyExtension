@@ -112,83 +112,104 @@ const loginForm = {
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-$("#login-button").on("click", function () {
-  const username = loginForm.username.val();
-  let shouldHideUsernameError = true;
-  if (username.trim().length == 0) {
-    loginForm.username
-      .next(".error-label")
-      .text("Don't forget your username!");
-    shouldHideUsernameError = false;
-  }
-  if (shouldHideUsernameError) {
-    loginForm.username
-      .next(".error-label")
-      .text('');
-  }
+$("#login-button").on("click",handleLoginAttempt);
 
-  const password = loginForm.password.val();
-  let shouldHidePasswordError = true;
-  if (password.length == 0) {
-    loginForm.password
-      .next(".error-label")
-      .text("Wait! You forgot a password!");
-    shouldHidePasswordError = false;
-  } else if (password.length < 6) {
-    loginForm.password
-      .next(".error-label")
-      .html("Your password must be at least<br/> 6 characters!");
-    shouldHidePasswordError = false;
+$('#login input').on('keydown', function(e){
+  if(e.keyCode == 13){
+    handleLoginAttempt()
   }
-  if (shouldHidePasswordError) {
-    loginForm.password.next(".error-label").text("");
-  }
+})
 
-  if (shouldHideUsernameError && shouldHidePasswordError) {
-    $('#login-error').text('')
-    startLoading(document.body)
-    setTimeout(function () {
-      $.ajax({
-        url: endpointURL + 'authenticate',
-        method: "POST",
-        data: {
-          username: username,
-          password: password,
-        },
-        success: function (data) {
-          const jwt = data.token;
-          chrome.storage.sync.set({ jwtToken: jwt, username }, function () {
-            finishLoading(document.body)
-            jwtToken = jwt;
-            $(".intro-container").fadeOut(function () {
-              $(".container").fadeIn();
-              initHomepage(username)
+function handleLoginAttempt(){
+    const username = loginForm.username.val();
+    let shouldHideUsernameError = true;
+    if (username.trim().length == 0) {
+      loginForm.username
+        .next(".error-label")
+        .text("Don't forget your username!");
+      shouldHideUsernameError = false;
+    }
+    if (shouldHideUsernameError) {
+      loginForm.username
+        .next(".error-label")
+        .text('');
+    }
+  
+    const password = loginForm.password.val();
+    let shouldHidePasswordError = true;
+    if (password.length == 0) {
+      loginForm.password
+        .next(".error-label")
+        .text("Wait! You forgot a password!");
+      shouldHidePasswordError = false;
+    } else if (password.length < 6) {
+      loginForm.password
+        .next(".error-label")
+        .html("Your password must be at least<br/> 6 characters!");
+      shouldHidePasswordError = false;
+    }
+    if (shouldHidePasswordError) {
+      loginForm.password.next(".error-label").text("");
+    }
+  
+    if (shouldHideUsernameError && shouldHidePasswordError) {
+      $('#login-error').text('')
+      startLoading(document.body)
+      setTimeout(function () {
+        $.ajax({
+          url: endpointURL + 'authenticate',
+          method: "POST",
+          data: {
+            username: username,
+            password: password,
+          },
+          success: function (data) {
+            const jwt = data.token;
+            chrome.storage.sync.set({ jwtToken: jwt, username }, function () {
+              finishLoading(document.body)
+              jwtToken = jwt;
+              $(".intro-container").fadeOut(function () {
+                $(".container").fadeIn();
+                clearFormValues(loginForm )
+                initHomepage(username)
+              });
             });
-          });
-        }, error: function (data) {
-          finishLoading()
-          const parsedData = JSON.parse(data.responseText)
-          if (parsedData.token == "Unauthorized") {
-            $('#login-error').text("Invalid username and/or password")
-            console.log('wrong password')
-          } else {
-            const firstError = Object.values(parsedData.errors)[0]
-            $('#login-error').text(firstError)
+          }, error: function (data) {
+            finishLoading()
+            try{
+            const parsedData = JSON.parse(data.responseText)
+            if (parsedData.token == "Unauthorized") {
+              $('#login-error').text("Invalid username and/or password")
+              console.log('wrong password')
+            } else {
+              const firstError = Object.values(parsedData.errors)[0]
+              $('#login-error').text(firstError)
+            }
+          }catch(err){
+            showErrorMessage('An error occurred. Try closing/reopening this extension', 5000)
           }
-        }
-      })
-    }, 1000)
-  }
-});
+          }
+        })
+      }, 1000)
+    }
+}
 
 const registerForm = {
   username: $('#register-username'),
   email: $("#register-email"),
-  password: $("#register-password"),
+  password: $("#register-password"),  
   confirmPassword: $("#register-password-confirm"),
 };
 
-$("#register-button").on("click", function () {
+$('#register input').on('keydown', function(e){
+  if(e.keyCode == 13){
+    handleRegisterAttempt();
+  }
+})
+
+$("#register-button").on("click", handleRegisterAttempt);
+
+function handleRegisterAttempt() {
   const username = registerForm.username.val();
   let shouldHideUsernameError = true;
   if (username.trim().length == 0) {
@@ -281,6 +302,7 @@ $("#register-button").on("click", function () {
             finishLoading(document.body)
             $(".intro-container").fadeOut(function () {
               $(".container").fadeIn();
+              clearFormValues(registerForm)
               initHomepage(username, jwt)
             });
           });
@@ -297,9 +319,13 @@ $("#register-button").on("click", function () {
       })
     }, 1000)
   }
-});
+}
 
 $("#click-block").click(false);
+
+function clearFormValues(obj){
+  Object.values(obj).forEach(e => e.val(''))
+}
 
 /* add tag */
 
