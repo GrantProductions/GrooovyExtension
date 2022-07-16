@@ -297,9 +297,15 @@ $('#edit-review #submit-review').on('click', function () {
   }
 })
 
-function invertHex(hex) {
-  return (Number(`0x1${hex}`) ^ 0xFFFFFF).toString(16).substr(1).toUpperCase()
+function padZero(str, len) {
+  len = len || 2;
+  var zeros = new Array(len).join('0');
+  return (zeros + str).slice(-len);
 }
+
+const invertColorToBW = (hex) => (parseInt(hex.substring(0, 2), 16) * 0.299 + parseInt(hex.substring(2, 4), 16) * 0.587 + parseInt(hex.substring(4, 6), 16) * 0.114) > 186
+? '#000000'
+: '#FFFFFF';
 
 const tagSuggestions = $('#tag-input-suggestions')
 let prevQueryTimeout;
@@ -328,10 +334,9 @@ $('#tag-input').on('input', function () {
                 <span class="material-icons">${e.private ? 'visibility_off' : 'visibility'}</span>
                   ${e.name}
               </div>`)
-              tagElem.find('.tag-color').css('color', `#${e.color}`)
-              const invertedColor = invertHex(e.color)
+              const invertedColor = invertColorToBW(e.color)
               tagElem.css({
-                color: '#' + invertedColor,
+                color: invertedColor,
                 backgroundColor: '#' + e.color,
                 borderColor: invertedColor
               })
@@ -349,19 +354,95 @@ $('#tag-input').on('input', function () {
   }
 })
 
-$('#new-tag #new-tag-popup #new-tag-popup-colors .new-tag-color').each(function(){
+$('#new-tag #new-tag-popup #new-tag-popup-colors .new-tag-color').each(function () {
   $(this).css('background-color', $(this).data('color'));
 })
 
 const tagColorActiveIndicator = $(`<div class="active-indicator"><span class="material-icons">check</span></div>`)
 const tagColorCustomHex = $('#new-tag-popup-footer input')
-$('#new-tag #new-tag-popup #new-tag-popup-colors .new-tag-color').on('click', function(){
+const newTagNameInput = $('#new-tag-name')
+const newTagPopupContent = $('#new-tag-popup #new-tag-popup-content')
+const newTagErrorLabel = $('#new-tag-error')
+
+$('#new-tag #new-tag-popup #new-tag-popup-colors .new-tag-color').on('click', function () {
   tagColorActiveIndicator.appendTo($(this))
   tagColorCustomHex.val($(this).data('color'))
 })
 
-tagColorCustomHex.on('input', function(){
+tagColorCustomHex.on('input', function () {
   tagColorActiveIndicator.remove()
+})
+
+const privacyOptions = $('#new-tag #new-tag-popup .new-tag-privacy-option')
+privacyOptions.on('click', function () {
+  privacyOptions.removeClass('active');
+  $(this).addClass('active')
+})
+
+const hexRegex = /^#[0-9A-F]{6}$/i;
+
+const newTagPopup = $('#new-tag-popup')
+const newTagToggle = $('#new-tag')
+newTagToggle.on('click', function (e) {
+  newTagPopup.toggle();
+  e.stopPropagation();
+})
+
+newTagPopup.on('click', function (e) {
+  e.stopPropagation();
+})
+
+
+$('#new-tag-button').on('click', function () {
+  const newTagName = newTagNameInput.val()
+  const customHex = tagColorCustomHex.val()
+  newTagErrorLabel.text('')
+  let shouldHideNewTagError = true;
+  if (customHex.trim().length > 0 && customHex.substring(0, 1) != '#') {
+    tagColorCustomHex.val('#' + customHex)
+  }
+  if (newTagName.trim().length == 0) {
+    newTagErrorLabel.text(`You'll need a tag name!`)
+    shouldHideNewTagError = false;
+  } else if (!tagColorActiveIndicator.is(':visible') && customHex.trim().length == 0) {
+    newTagErrorLabel.text(`Don't forget a tag color!`)
+    shouldHideNewTagError = false;
+  } else if (!privacyOptions.is('.active')) {
+    newTagErrorLabel.text(`Please choose whether the tag is public/private`)
+    shouldHideNewTagError = false;
+  } else if (!hexRegex.test(tagColorCustomHex.val())) {
+    newTagErrorLabel.text(`Invalid HEX color`)
+    shouldHideNewTagError = false;
+  }
+
+  if (shouldHideNewTagError) {
+    newTagErrorLabel.text('')
+    startLoading(newTagPopupContent)
+    setTimeout(function () {
+      $.ajax({
+        url: endpointURL + 'newtag',
+        method: "POST",
+        data: {
+          name: newTagName,
+          color: tagColorCustomHex.val().trim(),
+          isPrivate: $('.new-tag-privacy-option.active').data('def') == 'private'
+        },
+        headers: {
+          "Authorization": "Bearer " + jwtToken
+        },
+        success: function (data) {
+          if (data.success) {
+            finishLoading(newTagPopupContent);
+            newTagPopup.hide()
+          }
+        },
+        error: function (data) {
+          finishLoading(newTagPopupContent)
+          newTagErrorLabel.text(data.responseJSON.message)
+        }
+      })
+    }, 500)
+  }
 })
 
 /* boot up */
@@ -396,14 +477,14 @@ function loadSiteReviews(jwt) {
   });
 }
 
-function startLoading() {
-  $('#loading').show();
-  $('#click-block').show();
+function startLoading(element) {
+  $('#loading').show().appendTo(element);
+  $('#click-block').show().appendTo(element);
 }
 
-function finishLoading() {
-  $('#loading').hide();
-  $('#click-block').hide();
+function finishLoading(element) {
+  $('#loading').hide().appendTo(element);
+  $('#click-block').hide().appendTo(element);
 }
 
 /* profile controls */
@@ -432,5 +513,8 @@ $('#log-out-button').on('click', function () {
 $(document).on("click", function (e) {
   if (!e.target.closest('#profile-popup')) {
     profilePopup.hide()
+  }
+  if (!e.target.closest('#new-tag-popup')) {
+    newTagPopup.hide()
   }
 });

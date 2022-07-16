@@ -98,30 +98,41 @@
           <h3>Tags</h3>
           <div id="new-tag"><span class="material-icons">add</span> Create New Tag
             <div id="new-tag-popup">
-              <input placeholder="Tag name">
-              <div id="new-tag-popup-colors">
-                <div class="new-tag-color" data-color="#000000"></div>
-                <div class="new-tag-color" data-color="#737373"></div>
-                <div class="new-tag-color" data-color="#ffffff"></div>
-                <div class="new-tag-color" data-color="#ff2524"></div>
-                <div class="new-tag-color" data-color="#6c00e5"></div>
-                <div class="new-tag-color" data-color="#00979d"></div>
-                <div class="new-tag-color" data-color="#18b3fb"></div>
-                <div class="new-tag-color" data-color="#5a6afa"></div>
-                <div class="new-tag-color" data-color="#0c45a9"></div>
-                <div class="new-tag-color" data-color="#00803c"></div>
-                <div class="new-tag-color" data-color="#c2e36f"></div>
-                <div class="new-tag-color" data-color="#ff9456"></div>
-              </div>
-              <div id="new-tag-popup-footer">
-                <input placeholder="custom HEX">
-                <button>Create</button>
+              <div id="new-tag-popup-content">
+                <input placeholder="Tag name" id="new-tag-name">
+                <div id="new-tag-privacy-toggle">
+                  <div class="new-tag-privacy-option" data-def="public">
+                    <span class="material-icons">visibility</span>
+                    Public</div>
+                  <div class="new-tag-privacy-option" data-def="private">
+                    <span class="material-icons">visibility_off</span>
+                    Private</div>
+                </div>
+                <div id="new-tag-popup-colors">
+                  <div class="new-tag-color" data-color="#000000"></div>
+                  <div class="new-tag-color" data-color="#737373"></div>
+                  <div class="new-tag-color" data-color="#ffffff"></div>
+                  <div class="new-tag-color" data-color="#ff2524"></div>
+                  <div class="new-tag-color" data-color="#6c00e5"></div>
+                  <div class="new-tag-color" data-color="#00979d"></div>
+                  <div class="new-tag-color" data-color="#18b3fb"></div>
+                  <div class="new-tag-color" data-color="#5a6afa"></div>
+                  <div class="new-tag-color" data-color="#0c45a9"></div>
+                  <div class="new-tag-color" data-color="#00803c"></div>
+                  <div class="new-tag-color" data-color="#c2e36f"></div>
+                  <div class="new-tag-color" data-color="#ff9456"></div>
+                </div>
+                <span id="new-tag-error" class="error-label"></span>
+                <div id="new-tag-popup-footer">
+                  <input placeholder="custom HEX">
+                  <button id="new-tag-button">Create</button>
+                </div>
               </div>
             </div>
           </div>
         </div>
         <div id="tag-input-container">
-          <input id="tag-input" placeholder="Suggestions will appear once you type">
+          <input id="tag-input" placeholder="Suggestions will appear once you type" autocomplete="off">
           <div id="tag-input-suggestions">
           </div>
         </div>
