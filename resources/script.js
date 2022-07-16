@@ -27,13 +27,6 @@ chrome.storage.sync.get(['jwtToken', 'username'], function (result) {
   }
 });
 
-const exampleTags = [
-  { name: "Entertainment", color: "#e6584e" },
-  { name: "Programming", color: "#2ba9e3" },
-  { name: "Cool", color: "#2ba9e3" },
-  { name: "For School", color: "#e32bb2" },
-];
-
 const skipIntroForDev = true;
 if (skipIntroForDev) {
   $(".intro-container").hide();
@@ -304,12 +297,15 @@ function padZero(str, len) {
 }
 
 const invertColorToBW = (hex) => (parseInt(hex.substring(0, 2), 16) * 0.299 + parseInt(hex.substring(2, 4), 16) * 0.587 + parseInt(hex.substring(4, 6), 16) * 0.114) > 186
-? '#000000'
-: '#FFFFFF';
+  ? '#000000'
+  : '#FFFFFF';
 
 const tagSuggestions = $('#tag-input-suggestions')
 let prevQueryTimeout;
-$('#tag-input').on('input', function () {
+
+const addTagInput = $('#tag-input')
+
+addTagInput.on('input', function () {
   const query = $(this).val().trim()
   if (query.length != 0) {
     if (prevQueryTimeout) {
@@ -327,21 +323,37 @@ $('#tag-input').on('input', function () {
         success: function (data) {
           tagSuggestions.empty()
           if (data.data.length == 0) {
-            tagSuggestions.html('<span class="input-suggestion-label">No suggestions. Want to create it?</span>')
+            tagSuggestions.html('<span class="input-suggestion-label">No suggestions. Want to <span class="new-tag-suggestion">create it</span>?</span>')
           } else {
+            let displayedTags = 0;
             data.data.forEach(e => {
-              const tagElem = $(`<div class="tag">
+              let isUnique = true;
+              const samePrivacyTagsAdded = reviewTags.find(`.tag[data-private=${e.private}]`).toArray()
+              for (elem of samePrivacyTagsAdded) {
+                const tagName = $(elem).find('.tag-name').text().trim()
+                if (tagName.toLowerCase() == e.name.toLowerCase()) {
+                  isUnique = false;
+                  break;
+                }
+              }
+              if (isUnique) {
+                const tagElem = $(`<div class="tag" data-private=${e.private}>
                 <span class="material-icons">${e.private ? 'visibility_off' : 'visibility'}</span>
-                  ${e.name}
+                  <span class="tag-name">${e.name}</span>
               </div>`)
-              const invertedColor = invertColorToBW(e.color)
-              tagElem.css({
-                color: invertedColor,
-                backgroundColor: '#' + e.color,
-                borderColor: invertedColor
-              })
-              tagSuggestions.append(tagElem)
+                const invertedColor = invertColorToBW(e.color)
+                tagElem.css({
+                  color: invertedColor,
+                  backgroundColor: '#' + e.color,
+                  borderColor: invertedColor
+                })
+                tagSuggestions.append(tagElem)
+                displayedTags++;
+              }
             })
+            if(displayedTags == 0){
+              tagSuggestions.html('<span class="input-suggestion-label">No suggestions.</span>')
+            }
           }
         },
         error: function (data) {
@@ -352,6 +364,19 @@ $('#tag-input').on('input', function () {
   } else {
     tagSuggestions.empty().hide()
   }
+})
+
+const reviewTags = $('#edit-review .tags')
+
+tagSuggestions.on('click', '.tag', function (e) {
+  $(e.target.closest('.tag')).appendTo(reviewTags)
+  tagSuggestions.empty().hide()
+  addTagInput.val('')
+})
+
+$(document).on('click', '.new-tag-suggestion', function(e){
+  newTagPopup.show();
+  e.stopPropagation()
 })
 
 $('#new-tag #new-tag-popup #new-tag-popup-colors .new-tag-color').each(function () {
@@ -391,7 +416,6 @@ newTagToggle.on('click', function (e) {
 newTagPopup.on('click', function (e) {
   e.stopPropagation();
 })
-
 
 $('#new-tag-button').on('click', function () {
   const newTagName = newTagNameInput.val()
@@ -433,7 +457,11 @@ $('#new-tag-button').on('click', function () {
         success: function (data) {
           if (data.success) {
             finishLoading(newTagPopupContent);
-            newTagPopup.hide()
+            $(newTagPopup).hide()
+            newTagNameInput.val('')
+            tagColorCustomHex.val('')
+            tagColorActiveIndicator.remove()
+            $('.new-tag-privacy-option.active').removeClass('active')
           }
         },
         error: function (data) {

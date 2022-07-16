@@ -509,8 +509,20 @@ hr {
   border-top: 2px solid #0364df;
   padding: 10px 17.5px;
   display: flex;
+  flex-wrap: wrap;
+  max-height: 120px;
+  overflow: auto;
   box-sizing: border-box;
+  box-shadow: 0 0 3px black;
+  border-radius: 0 0 3px 3px;
   display: none;
+}
+
+#edit-review #tag-input-container .new-tag-suggestion {
+  color: #0364df;
+  text-decoration: underline;
+  cursor: pointer;
+  user-select: none;
 }
 
 #edit-review #tag-input-container .input-suggestion-label {
@@ -520,20 +532,26 @@ hr {
 
 .tag {
   padding: 5px 8.5px;
-  background-color: #e1ecf4;
-  color: #39739d;
   font-size: 13px;
   border-radius: 5px;
   cursor: pointer;
-  margin-right: 5px;
+  margin: 5px;
   display: flex;
   align-items: center;
   border: 1px solid;
+  user-select: none;
 }
 
 .tag .material-icons {
   font-size: 15.5px;
   margin-right: 7px;
+}
+
+.tags {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  overflow: auto;
 }
 
 #edit-review #tags-heading {
@@ -570,13 +588,13 @@ hr {
   display: none;
 }
 
-#edit-review #new-tag-popup #new-tag-popup-content{
+#edit-review #new-tag-popup #new-tag-popup-content {
   padding: 15px;
   width: 278px;
   background-color: white;
 }
 
-#edit-review #new-tag-popup #new-tag-popup-content::after{
+#edit-review #new-tag-popup #new-tag-popup-content::after {
   content: "";
   width: 20px;
   height: 20px;
@@ -677,9 +695,11 @@ hr {
   align-items: center;
 }
 
-
-#edit-review #new-tag-popup #new-tag-privacy-toggle .new-tag-privacy-option.active{
-  background-color:#aad0ff;
+#edit-review
+  #new-tag-popup
+  #new-tag-privacy-toggle
+  .new-tag-privacy-option.active {
+  background-color: #aad0ff;
 }
 
 #edit-review
