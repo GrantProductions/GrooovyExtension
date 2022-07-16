@@ -48,18 +48,10 @@ chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
       }
       if (validToken) {
         if (expiry > now) {
-          console.log(
-            `jwt token still valid for ${(expiry - now) / 1000 / 60} minutes`
-          );
           $(".intro-container").hide();
+          jwtToken = result.jwtToken;
           $(document).ready(function () {
             initHomepage(result.username);
-            jwtToken = result.jwtToken;
-            barURL = currentURL;
-            barChunks = parseURLIntoChunks(barURL)
-            if (barChunks) {
-              convertChunksToElems(barChunks);
-            }
           });
         }
       }
@@ -183,7 +175,6 @@ function handleLoginAttempt() {
             const parsedData = JSON.parse(data.responseText);
             if (parsedData.token == "Unauthorized") {
               $("#login-error").text("Invalid username and/or password");
-              console.log("wrong password");
             } else {
               const firstError = Object.values(parsedData.errors)[0];
               $("#login-error").text(firstError);
@@ -314,6 +305,9 @@ function handleRegisterAttempt() {
               $(".container").fadeIn();
               clearFormValues(registerForm);
               initHomepage(username, jwt);
+              if (barChunks) {
+                convertChunksToElems(barChunks);
+              }
             });
           });
         },
@@ -495,8 +489,8 @@ addTagInput.on("input", function () {
             }
           }
         },
-        error: function (data) {
-          console.log(data);
+        error: function () {
+          showErrorMessage('Failed to fetch tag suggestions', 500)
         },
       });
     }, 500);
@@ -668,6 +662,11 @@ $("#new-tag-button").on("click", function () {
 
 function initHomepage(username) {
   $(document).ready(function () {
+    barURL = currentURL;
+    barChunks = parseURLIntoChunks(barURL)
+    if (barChunks) {
+      convertChunksToElems(barChunks);
+    }
     $("#profile-name").text(username);
     loadSiteReviews(currentURL, reviewsSection, reviews, null, null, $(`<span class="empty-label">No reviews found. Want to <span class="link-suggestion page-director" data-key="edit-review">create one</span>?</span>`));
   });
@@ -1030,7 +1029,6 @@ let selectedTagFilterId;
 $(userReviewsTagFilterPopup).on("click", ".expandable-option", function () {
   const id = $(this).data("id");
   selectedTagFilterId = id;
-  console.log(id);
   closeExpandablePopup(userReviewsTagFilterPopup);
   loadUserReviews(
     selectedUserReviewsSortOption,
@@ -1092,7 +1090,7 @@ urlBar.on("keydown", function (e) {
     const newURL = urlBar.text();
     const chunks = parseURLIntoChunks(newURL)
     if (chunks) {
-      barURL = newURL;
+      barURL = parseChunksIntoURL(chunks);
       urlBar.empty();
 
       convertChunksToElems(chunks);
@@ -1154,6 +1152,8 @@ function getURLResults(url) {
       } else {
         urlResultsRating.show()
       }
+      explorerReviewsSortOptions.find('.material-icons').hide()
+      explorerReviewsSortOptions.filter(`[data-def="recent"]`).find('.material-icons').show();
     }
   });
 }
@@ -1165,7 +1165,7 @@ explorerReviewsSortOptions.on('click', function (e) {
   const sortOption = $(this).data('def');
   closeExpandablePopup(explorerReviewsSortPopup)
   e.stopPropagation()
-  loadExplorerReviews(currentURL, sortOption, function (didSucceed, data) {
+  loadExplorerReviews(barURL, sortOption, function (didSucceed, data) {
     if (didSucceed) {
       if (data.reviews.length == 0) {
         urlResultsReviewsList.html(`<i class="empty-label">No reviews for this site</i>`)
