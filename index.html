@@ -14,6 +14,17 @@
   <div class="logo">
     <img src="resources/images/logo.PNG" height="25" draggable="false" />
   </div>
+  <div class="profile">
+    <div id="profile-name"></div>
+    <span class="material-icons">
+      account_circle
+    </span>
+    <div id="profile-popup">
+      <div id="profile-popup-content">
+        <div class="profile-popup-option" id="log-out-button">Log out</div>
+      </div>
+    </div>
+  </div>
   <div class="intro-container">
     <div class="intro">
       <div class="logo">
@@ -69,7 +80,7 @@
       </div>
     </div>
     <div id="nav-content">
-      <div class="nav-content" id="edit-review">
+      <div class="nav-content active" id="edit-review">
         <h3 id="edit-review-title">Add Review</h3>
         <br />
         <div class="stars">
@@ -80,27 +91,46 @@
           <span class="material-icons">star_border</span>
         </div>
         <br />
-        <textarea id="review-text" placeholder="Explain your rating..."></textarea>
+        <textarea id="review-text" placeholder="Explain your rating... (placeholder)"></textarea>
         <br />
         <br />
-        <div id="review-tags">
-          <div>Tags:</div>
-          <div class="tags">
-            <i>No tags added</i>
-          </div>
-          <div id="add-tag">
-            <span class="material-icons">add</span>
-            <span class="label">Add Tag</span>
-            <div id="add-tag-popup">
-              <input id="add-tag-popup-search" placeholder="Tag search...">
-              <div id="add-tag-list">
-
+        <div id="tags-heading">
+          <h3>Tags</h3>
+          <div id="new-tag"><span class="material-icons">add</span> Create New Tag
+            <div id="new-tag-popup">
+              <input placeholder="Tag name">
+              <div id="new-tag-popup-colors">
+                <div class="new-tag-color" data-color="#000000"></div>
+                <div class="new-tag-color" data-color="#737373"></div>
+                <div class="new-tag-color" data-color="#ffffff"></div>
+                <div class="new-tag-color" data-color="#ff2524"></div>
+                <div class="new-tag-color" data-color="#6c00e5"></div>
+                <div class="new-tag-color" data-color="#00979d"></div>
+                <div class="new-tag-color" data-color="#18b3fb"></div>
+                <div class="new-tag-color" data-color="#5a6afa"></div>
+                <div class="new-tag-color" data-color="#0c45a9"></div>
+                <div class="new-tag-color" data-color="#00803c"></div>
+                <div class="new-tag-color" data-color="#c2e36f"></div>
+                <div class="new-tag-color" data-color="#ff9456"></div>
+              </div>
+              <div id="new-tag-popup-footer">
+                <input placeholder="custom HEX">
+                <button>Create</button>
               </div>
             </div>
           </div>
         </div>
+        <div id="tag-input-container">
+          <input id="tag-input" placeholder="Suggestions will appear once you type">
+          <div id="tag-input-suggestions">
+          </div>
+        </div>
+        <div class="tags"></div>
+        <br />
+        <span id="review-error" class="error-label"></span>
+        <button id="submit-review">Submit</button>
       </div>
-      <div class="nav-content active" id="reviews" data-key="reviews">
+      <div class="nav-content" id="reviews" data-key="reviews">
         <h3>Website rating</h3>
         <div id="url"></div>
         <div class="rating-container">

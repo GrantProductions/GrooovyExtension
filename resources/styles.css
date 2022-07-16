@@ -45,7 +45,7 @@ hr {
   height: 5px;
   background-color: #8eb7fa;
   display: none;
-  z-index: 3;
+  z-index: 4;
 }
 
 #loading-bar {
@@ -65,8 +65,59 @@ hr {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 2;
+  z-index: 3;
   background-color: rgba(255, 255, 255, 0.5);
+}
+
+.profile {
+  position: fixed;
+  top: 0px;
+  right: 30px;
+  display: flex;
+  align-items: center;
+  border: 2px solid #e7e7e7;
+  border-top: none;
+  padding: 5px 10px;
+  border-radius: 0 0 5px 5px;
+  user-select: none;
+  cursor: pointer;
+}
+
+.profile #profile-name {
+  margin-right: 5px;
+}
+
+.profile #profile-popup {
+  position: absolute;
+  top: 55px;
+  right: 0;
+  z-index: 1;
+  border-radius: 2px;
+  border: 1px solid #d3d3d3;
+  white-space: nowrap;
+  display: none;
+}
+
+.profile #profile-popup::after {
+  content: "";
+  width: 20px;
+  height: 20px;
+  transform: rotate(-45deg);
+  background: #fff;
+  position: absolute;
+  border: 1px solid #d3d3d3;
+  z-index: -1;
+  top: -10px;
+  left: calc(50% - 10px);
+}
+
+.profile #profile-popup #profile-popup-content {
+  background-color: white;
+  border-radius: 5px;
+}
+
+.profile #profile-popup #profile-popup-content .profile-popup-option {
+  padding: 7.5px 12.5px;
 }
 
 /* login */
@@ -77,7 +128,7 @@ hr {
   left: 0;
   height: 100%;
   width: 100%;
-  z-index: 1;
+  z-index: 2;
   background-color: white;
   display: flex;
   align-items: center;
@@ -375,6 +426,12 @@ hr {
 
 /* new/edit revew */
 
+#edit-review {
+  height: 100%;
+  box-sizing: border-box;
+  position: relative;
+}
+
 #edit-review h3 {
   font-weight: 300;
   margin: 0;
@@ -406,74 +463,175 @@ hr {
   padding: 10px 15px;
 }
 
-#edit-review #review-tags {
+#edit-review #submit-review {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  padding: 7.5px 12.5px;
+  font-size: 1em;
+  font-family: "Roboto";
+  border: none;
+  border-radius: 5px;
+  background-color: #0364df;
+  color: white;
+  box-shadow: 0 0 2px #0364df;
+  cursor: pointer;
+  font-weight: 300;
+}
+
+#edit-review #tag-input-container {
+  margin-top: 20px;
+  position: relative;
+}
+
+#edit-review #tag-input {
+  width: 100%;
+  box-sizing: border-box;
+  border: none;
+  border-radius: 5px 5px 0 0;
+  font-size: 1em;
+  resize: none;
+  outline: none;
+  font-family: "Roboto";
+  padding: 10px 15px;
+}
+
+#edit-review #tag-input-container #tag-input-suggestions {
+  position: absolute;
+  top: 40px;
+  left: 0px;
+  width: 100%;
+  background-color: white;
+  border-top: 2px solid #0364df;
+  padding: 10px 17.5px;
   display: flex;
+  box-sizing: border-box;
+  display: none;
+}
+
+#edit-review #tag-input-container .input-suggestion-label {
+  color: grey;
   font-size: 14px;
 }
 
-#edit-review #review-tags .tags {
-  flex: 1;
-  margin-left: 10px;
-}
-
-#edit-review #review-tags #add-tag {
+.tag {
+  padding: 5px 8.5px;
+  background-color: #e1ecf4;
+  color: #39739d;
+  font-size: 13px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-right: 5px;
   display: flex;
   align-items: center;
+  border: 1px solid;
+}
+
+.tag .material-icons {
+  font-size: 15.5px;
+  margin-right: 7px;
+}
+
+#edit-review #tags-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#edit-review #tags-heading #new-tag {
+  color: #0364df;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
   cursor: pointer;
   position: relative;
 }
 
-#edit-review #review-tags #add-tag .material-icons {
+#edit-review #tags-heading #new-tag > .material-icons {
   font-size: 17px;
-  margin-right: 2px;
+  margin-right: 2.5px;
 }
 
-#edit-review #review-tags #add-tag .label {
-  text-decoration: underline;
-  user-select: none;
-}
-
-#edit-review #review-tags #add-tag #add-tag-popup {
+#edit-review #new-tag-popup {
   position: absolute;
-  top: 30px;
-  right: 0;
   background-color: white;
-  padding: 10px;
-  border-radius: 5px;
-  display: none;
-  cursor: initial;
+  top: -70px;
+  right: 128px;
+  box-shadow: 0 0 1px black;
+  border-radius: 4px;
+  z-index: 7;
+  padding: 15px;
+  width: 278px;
 }
 
-#edit-review #review-tags #add-tag #add-tag-popup #add-tag-list{
-  margin-top: 15px;
-}
-
-#edit-review #review-tags #add-tag #add-tag-popup #add-tag-list .selected-tag{
-  display: none;
-  margin-right: 5px;
-}
-
-#edit-review #review-tags #add-tag #add-tag-popup #add-tag-list .tag{
-  display: flex;
-  align-items: center;
-  padding: 5px 0;
-  cursor: pointer;
-  user-select: none;
-}
-
-#edit-review #review-tags #add-tag #add-tag-popup #add-tag-list .tag:hover{
-  background-color: #ededed;
-}
-
-#edit-review #review-tags #add-tag #add-tag-popup #add-tag-popup-search {
-  padding: 6px 14px;
-  border: none;
-  border-bottom: 2px solid #0364df;
+#edit-review #new-tag-popup input {
+  box-sizing: border-box;
   font-size: 1em;
-  background-color: #f7f7f7;
-  border-radius: 5px 5px 0 0;
   outline: none;
+  border: 3px;
   font-family: "Roboto";
+  padding: 10px 15px;
+  background-color: #f7f7f7;
+  width: 100%;
+}
+
+#edit-review #new-tag-popup #new-tag-popup-colors {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding-top: 10px;
+  border-top: 1px solid grey;
+  margin-top: 20px;
+}
+
+#edit-review #new-tag-popup .new-tag-color {
+  height: 30px;
+  width: 30px;
+  margin: 7px;
+  border-radius: 3px;
+  border: 1px solid black;
+  position: relative;
+}
+
+#edit-review #new-tag-popup .new-tag-color .active-indicator{
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  height: 100%;
+  width: 100%;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#edit-review #new-tag-popup .new-tag-color .active-indicator .material-icons{
+  font-size: 18px;
+}
+
+#edit-review #new-tag-popup #new-tag-popup-footer{
+  display: flex;
+  margin-top: 10px;
+  padding: 0 7px;
+}
+
+#edit-review #new-tag-popup #new-tag-popup-footer input{
+  margin-right: 10px;
+  flex: 1;
+}
+
+#edit-review #new-tag-popup #new-tag-popup-footer button{
+    padding: 7.5px 12.5px;
+    font-size: 1em;
+    font-family: 'Roboto';
+    border: none;
+    border-radius: 5px;
+    background-color: #0364df;
+    color: white;
+    box-shadow: 0 0 2px #0364df;
+    cursor: pointer;
+    font-weight: 300;
 }
 
 /* animations */

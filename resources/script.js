@@ -1,12 +1,27 @@
-chrome.storage.sync.get(['jwtToken'], function(result) {
-  if(result.jwtToken){
+const endpointURL = "http://localhost:8080/api/"
+
+if (!chrome.storage) {
+  chrome.storage = {
+    sync: {
+      get: (e, f) => { f({ jwtToken: '' }) },
+      set: (e, f) => { f() }
+    }
+  }
+}
+
+let jwtToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhYWFhIiwiaXNzIjoiR3Jvb292eSIsImV4cCI6MTY1NzQ0MjA3NH0.PWj713JXouUPnd98iIwra43uWQnYUr0GywRTy755FYg";
+
+chrome.storage.sync.get(['jwtToken', 'username'], function (result) {
+  if (result.jwtToken) {
     const now = Date.now()
-    console.log(result.jwtToken)
     const expiry = jwt_decode(result.jwtToken).exp * 1000;
-    if(expiry > now){
+    if (expiry > now) {
+      console.log('RESULT', result)
       console.log(`jwt token still valid for ${(expiry - now) / 1000 / 60} minutes`)
       $('.intro-container').hide()
-    }else{
+      jwtToken = result.jwtToken;
+      initHomepage(result.username, result.jwtToken)
+    } else {
       console.log(`jwt token expired ${(now - expiry) / 1000 / 60} minutes ago`)
     }
   }
@@ -19,19 +34,11 @@ const exampleTags = [
   { name: "For School", color: "#e32bb2" },
 ];
 
-const skipIntroForDev = false;
+const skipIntroForDev = true;
 if (skipIntroForDev) {
   $(".intro-container").hide();
 }
 
-if (chrome.tabs) {
-  chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
-    const parsedURL = new URL(tabs[0].url);
-    const url =
-      parsedURL.protocol + "//" + parsedURL.hostname + parsedURL.pathname;
-    $("#url").text(url).attr("title", url);
-  });
-}
 
 $(".nav-item, .page-director").on("click", function () {
   if ($(this).hasClass("nav-item")) {
@@ -67,13 +74,13 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 $("#login-button").on("click", function () {
   const username = loginForm.username.val();
   let shouldHideUsernameError = true;
-  if(username.trim().length == 0){
+  if (username.trim().length == 0) {
     loginForm.username
       .next(".error-label")
       .text("Don't forget your username!");
-      shouldHideUsernameError = false;
+    shouldHideUsernameError = false;
   }
-  if(shouldHideUsernameError){
+  if (shouldHideUsernameError) {
     loginForm.username
       .next(".error-label")
       .text('');
@@ -97,11 +104,11 @@ $("#login-button").on("click", function () {
   }
 
   if (shouldHideUsernameError && shouldHidePasswordError) {
-    $("#loading").show();
-    $("#click-block").show();
+    $('#login-error').text('')
+    startLoading()
     setTimeout(function () {
       $.ajax({
-        url: 'http://localhost:8080/api/authenticate',
+        url: endpointURL + 'authenticate',
         type: "POST",
         data: {
           username: username,
@@ -110,20 +117,23 @@ $("#login-button").on("click", function () {
         success: function (data) {
           console.log('success', data)
           const jwt = data.token;
-          chrome.storage.sync.set({ jwtToken: jwt }, function () {
-            $("#loading").hide();
-            $("#click-block").hide();
+          chrome.storage.sync.set({ jwtToken: jwt, username }, function () {
+            finishLoading()
             $(".intro-container").fadeOut(function () {
               $(".container").fadeIn();
+              initHomepage(username, jwt)
             });
           });
         }, error: function (data) {
-          console.log('error', data)
-          $("#loading").hide();
-          $("#click-block").hide();
+          finishLoading()
           const parsedData = JSON.parse(data.responseText)
-          const firstError = Object.values(parsedData.errors)[0]
-          $('#register-error').text(firstError)
+          if (parsedData.token == "Unauthorized") {
+            $('#login-error').text("Invalid username and/or password")
+            console.log('wrong password')
+          } else {
+            const firstError = Object.values(parsedData.errors)[0]
+            $('#login-error').text(firstError)
+          }
         }
       })
     }, 1000)
@@ -212,11 +222,10 @@ $("#register-button").on("click", function () {
     shouldHideConfirmPasswordError
   ) {
     $("#register-error").text('')
-    $("#loading").show();
-    $("#click-block").show();
+    startLoading()
     setTimeout(function () {
       $.ajax({
-        url: 'http://localhost:8080/api/register',
+        url: endpointURL + 'register',
         type: "POST",
         data: {
           username: username,
@@ -227,17 +236,16 @@ $("#register-button").on("click", function () {
         success: function (data) {
           console.log('success', data)
           const jwt = data.token;
-          chrome.storage.sync.set({ jwtToken: jwt }, function () {
-            $("#loading").hide();
-            $("#click-block").hide();
+          chrome.storage.sync.set({ jwtToken: jwt, username }, function () {
+            finishLoading()
             $(".intro-container").fadeOut(function () {
               $(".container").fadeIn();
+              initHomepage(username, jwt)
             });
           });
         }, error: function (data) {
           console.log('error', data)
-          $("#loading").hide();
-          $("#click-block").hide();
+          finishLoading()
           const parsedData = JSON.parse(data.responseText)
           const firstError = Object.values(parsedData.errors)[0]
           $('#register-error').text(firstError)
@@ -249,16 +257,20 @@ $("#register-button").on("click", function () {
 
 $("#click-block").click(false);
 
+/* add tag */
+
 const stars = $("#edit-review .stars .material-icons");
 
+let selectedStars = 0;
+
 stars.on("click", function () {
-  $(this)
+  const prev = $(this)
     .html("star")
     .addClass("selected")
     .prevAll()
-    .html("star")
-    .addClass("selected");
+  prev.html("star").addClass("selected");
   $(this).nextAll().html("star_border").removeClass("selected");
+  selectedStars = prev.length + 1;
 });
 
 $("#edit-review #review-text").on("input", function () {
@@ -266,33 +278,159 @@ $("#edit-review #review-text").on("input", function () {
   $(this).css("height", 21 + $(this).prop("scrollHeight") + "px");
 });
 
-const addTagPopup = $("#add-tag-popup");
 const addTagList = $("#add-tag-list");
 
 $(addTagList).on('click', '.tag', function () {
   $(this).find('.material-icons').toggle()
 })
 
-addTagPopup.on("click", function (e) {
-  e.stopPropagation();
-});
+const reviewErrorLabel = $('#review-error')
+$('#edit-review #submit-review').on('click', function () {
+  let shouldHideReviewError = true;
+  if (selectedStars == 0) {
+    reviewErrorLabel.text("Don't forget to choose a rating!")
+    shouldHideReviewError = false;
+  }
+  if (shouldHideReviewError) {
+    reviewErrorLabel.text('')
+    startLoading();
+  }
+})
 
-$("#edit-review #review-tags #add-tag").on("click", function (e) {
-  addTagPopup.show();
-  addTagList.empty();
-  exampleTags.forEach((e) => {
-    addTagList.append(`
-            <div class="tag">
-                <span class="material-icons selected-tag">done</span>
-                ${e.name}
-            </div>
-        `);
+function invertHex(hex) {
+  return (Number(`0x1${hex}`) ^ 0xFFFFFF).toString(16).substr(1).toUpperCase()
+}
+
+const tagSuggestions = $('#tag-input-suggestions')
+let prevQueryTimeout;
+$('#tag-input').on('input', function () {
+  const query = $(this).val().trim()
+  if (query.length != 0) {
+    if (prevQueryTimeout) {
+      clearTimeout(prevQueryTimeout)
+    }
+    tagSuggestions.empty().css('display', 'flex');
+    tagSuggestions.html('<span class="input-suggestion-label">Loading...</span>')
+    prevQueryTimeout = setTimeout(function () {
+      $.ajax({
+        url: endpointURL + 'gettags',
+        data: {
+          query
+        },
+        headers: { "Authorization": "Bearer " + jwtToken },
+        success: function (data) {
+          tagSuggestions.empty()
+          if (data.data.length == 0) {
+            tagSuggestions.html('<span class="input-suggestion-label">No suggestions. Want to create it?</span>')
+          } else {
+            data.data.forEach(e => {
+              const tagElem = $(`<div class="tag">
+                <span class="material-icons">${e.private ? 'visibility_off' : 'visibility'}</span>
+                  ${e.name}
+              </div>`)
+              tagElem.find('.tag-color').css('color', `#${e.color}`)
+              const invertedColor = invertHex(e.color)
+              tagElem.css({
+                color: '#' + invertedColor,
+                backgroundColor: '#' + e.color,
+                borderColor: invertedColor
+              })
+              tagSuggestions.append(tagElem)
+            })
+          }
+        },
+        error: function (data) {
+          console.log(data);
+        }
+      })
+    }, 500)
+  } else {
+    tagSuggestions.empty().hide()
+  }
+})
+
+$('#new-tag #new-tag-popup #new-tag-popup-colors .new-tag-color').each(function(){
+  $(this).css('background-color', $(this).data('color'));
+})
+
+const tagColorActiveIndicator = $(`<div class="active-indicator"><span class="material-icons">check</span></div>`)
+const tagColorCustomHex = $('#new-tag-popup-footer input')
+$('#new-tag #new-tag-popup #new-tag-popup-colors .new-tag-color').on('click', function(){
+  tagColorActiveIndicator.appendTo($(this))
+  tagColorCustomHex.val($(this).data('color'))
+})
+
+tagColorCustomHex.on('input', function(){
+  tagColorActiveIndicator.remove()
+})
+
+/* boot up */
+
+function initHomepage(username, jwt) {
+  $('#profile-name').text(username)
+  loadSiteReviews(jwt)
+}
+
+function loadSiteReviews(jwt) {
+  startLoading()
+  chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
+    const parsedURL = new URL(tabs[0].url);
+    const url =
+      parsedURL.protocol + "//" + parsedURL.hostname + parsedURL.pathname;
+    $("#url").text(url).attr("title", url);
+    $.ajax({
+      url: endpointURL + 'reviews',
+      type: "GET",
+      data: { url },
+      headers: { "Authorization": "Bearer " + jwt },
+      success: function (data) {
+        console.log(data);
+        finishLoading()
+      },
+      error: function (data) {
+        console.log(data)
+        console.log(JSON.parse(data.responseText));
+        finishLoading()
+      }
+    })
   });
+}
+
+function startLoading() {
+  $('#loading').show();
+  $('#click-block').show();
+}
+
+function finishLoading() {
+  $('#loading').hide();
+  $('#click-block').hide();
+}
+
+/* profile controls */
+const profilePopup = $('#profile-popup')
+
+$('.profile').on('click', function (e) {
+  profilePopup.toggle()
+  e.stopPropagation()
+})
+
+profilePopup.on('click', function (e) {
   e.stopPropagation();
-});
+})
+
+$('#log-out-button').on('click', function () {
+  $(this).hide()
+  chrome.storage.sync.set({ jwtToken: null, username: null }, function () {
+    $('.container').fadeOut(function () {
+      $('.intro-container .intro-option').hide()
+      $('.intro').show()
+      $('.intro-container').fadeIn();
+    })
+  })
+})
 
 $(document).on("click", function (e) {
-  if (!e.target.closest("#add-tag-popup")) {
-    addTagPopup.hide();
+  if (!e.target.closest('#profile-popup')) {
+    profilePopup.hide()
   }
 });
