@@ -369,10 +369,23 @@ addTagInput.on('input', function () {
 const reviewTags = $('#edit-review .tags')
 
 tagSuggestions.on('click', '.tag', function (e) {
-  $(e.target.closest('.tag')).appendTo(reviewTags)
+  if(!!reviewTags.has('i.tags-label').length){
+    reviewTags.find('i.tags-label').hide()
+  }
+  const tag = $(e.target.closest('.tag'))
+  tag.appendTo(reviewTags)
+  tag.append(`<span class="material-icons delete-tag">close</span>`)
   reviewTags.scrollTop(reviewTags.height())
   tagSuggestions.empty().hide()
   addTagInput.val('')
+})
+
+reviewTags.on('click', '.tag .material-icons.delete-tag', function(e){
+  const tag = $(e.target.closest('.tag'));
+  tag.remove();
+  if($('.tag', reviewTags).length == 0){
+    reviewTags.find('i.tags-label').show()
+  }
 })
 
 $(document).on('click', '.new-tag-suggestion', function(e){

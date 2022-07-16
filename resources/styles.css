@@ -544,7 +544,11 @@ hr {
 
 .tag .material-icons {
   font-size: 15.5px;
+}
+
+.tag .material-icons:first-child {
   margin-right: 7px;
+  margin-top: 1px;
 }
 
 .tags {
@@ -553,6 +557,16 @@ hr {
   flex-wrap: wrap;
   overflow: auto;
   max-height: 75px;
+}
+
+.tags .tags-label {
+  font-size: 14px;
+  color: #808080;
+}
+
+.tags .tag .material-icons.delete-tag {
+  margin-left: 5px;
+  margin-top: 2px;
 }
 
 #edit-review #tags-heading {
