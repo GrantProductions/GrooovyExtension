@@ -684,7 +684,9 @@ function loadSiteReviews(
   reviewsListContainer,
   sortOption,
   callbackOnFinish,
-  noReviewsLabelElement
+  noReviewsLabelElement,
+  startsWith,
+  includeReviewURL
 ) {
   startLoading(navContentArea);
   setTimeout(function () {
@@ -694,6 +696,10 @@ function loadSiteReviews(
     if (sortOption) {
       requestData.sortOption = sortOption;
     }
+
+    if (startsWith) {
+      requestData.startsWith = startsWith;
+    }
     $.ajax({
       url: endpointURL + "reviews",
       type: "GET",
@@ -702,7 +708,7 @@ function loadSiteReviews(
       success: function (data) {
         reviews.empty();
         processReviewsMetadata(data.data, reviewsMetadataContainer);
-        processReviewsData(data.data.reviews, reviewsListContainer, noReviewsLabelElement);
+        processReviewsData(data.data.reviews, reviewsListContainer, noReviewsLabelElement, includeReviewURL);
         finishLoading(navContentArea);
         if (callbackOnFinish) {
           callbackOnFinish(true, data.data);
@@ -757,7 +763,7 @@ function processReviewsMetadata(data, container) {
 }
 
 
-function processReviewsData(data, container, includeReviewURL) {
+function processReviewsData(data, container, noReviewsLabelElement, includeReviewURL) {
   const now = Date.now();
 
   if (data.length == 0) {
@@ -815,7 +821,7 @@ function processReviewsData(data, container, includeReviewURL) {
     container.append(reviewElement);
   });
   if (data.length == 0) {
-    container.append(includeReviewURL)
+    container.append(noReviewsLabelElement)
   }
 }
 
@@ -881,7 +887,7 @@ function loadUserReviews(sortOption, tagFilter, callback) {
         }
         finishLoading(userReviewsSection);
         if (data.success) {
-          processReviewsData(data.data, userReviewsReviewsArea, true);
+          processReviewsData(data.data, userReviewsReviewsArea, null, true);
           if (callback) {
             callback(true);
           }
@@ -1148,10 +1154,10 @@ function getURLResults(url) {
     if (didSucceed) {
       if (data.reviews.length == 0) {
         urlResultsRating.hide()
-        urlResultsReviewsList.html(`<i class="empty-label">No reviews for this site</i>`)
       } else {
         urlResultsRating.show()
       }
+      highlightBarURLInExplorerReviews()
       explorerReviewsSortOptions.find('.material-icons').hide()
       explorerReviewsSortOptions.filter(`[data-def="recent"]`).find('.material-icons').show();
     }
@@ -1170,6 +1176,7 @@ explorerReviewsSortOptions.on('click', function (e) {
       if (data.reviews.length == 0) {
         urlResultsReviewsList.html(`<i class="empty-label">No reviews for this site</i>`)
       }
+      highlightBarURLInExplorerReviews()
       explorerReviewsSortOptions.find('.material-icons').hide()
       explorerReviewsSortOptions.filter(`[data-def="${sortOption}"]`).find('.material-icons').show();
     }
@@ -1177,7 +1184,19 @@ explorerReviewsSortOptions.on('click', function (e) {
 })
 
 function loadExplorerReviews(url, sortOption, callback) {
-  loadSiteReviews(url, urlResults, urlResultsReviewsList, sortOption, callback)
+  loadSiteReviews(url, urlResults, urlResultsReviewsList, sortOption, callback, 
+    `<i class="empty-label">No reviews for this site</i>`, true, true)
+}
+
+function highlightBarURLInExplorerReviews(){
+  $('#explorer .reviews .review .review-url').each(function(){
+    const url = $(this).text()
+    const bold = $('<span class="highlighted-section"></b>')
+    bold.text(barURL)
+    const remainder = $('<span></span>')
+    remainder.text(url.substring(barURL.length))
+    $(this).empty().append(bold).append(remainder)
+})
 }
 
 /* general */

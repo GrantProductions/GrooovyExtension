@@ -1051,6 +1051,10 @@ hr {
   margin: 0;
 }
 
+#explorer .reviews .review .review-url .highlighted-section{
+  text-decoration: underline;
+}
+
 /* notifications */
 
 #notifications {
