@@ -1,48 +1,71 @@
 const endpointURL = "http://localhost:8080/api/"
 
-if (!chrome.storage) {
+if (!chrome.storage || !chrome.tabs) {
+  //simulate with localStorage
   chrome.storage = {
     sync: {
-      get: (e, f) => { f({ jwtToken: '' }) },
-      set: (e, f) => { f() }
+      get: (e, f) => {
+        const toReturn = {};
+        e.forEach(g => {
+          toReturn[g] = localStorage.getItem(g)
+        });
+        f(toReturn)
+      },
+      set: (e, f) => {
+        Object.entries(e).forEach(g => {
+          localStorage.setItem(g[0], g[1])
+        });
+        f()
+      }
     }
+  }
+
+  chrome.tabs = {
+    query: (a, b) => { b([{ url: "https://www.google.com" }]) }
   }
 }
 
-let jwtToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhYWFhIiwiaXNzIjoiR3Jvb292eSIsImV4cCI6MTY1NzQ0MjA3NH0.PWj713JXouUPnd98iIwra43uWQnYUr0GywRTy755FYg";
+let jwtToken;
 let currentURL;
 
-if (chrome.tabs) {
-
-  chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
-    const parsedURL = new URL(tabs[0].url);
-    const url =
-      parsedURL.protocol + "//" + parsedURL.hostname + parsedURL.pathname;
-    currentURL = url;
-    $("#url").text(url).attr("title", url);
-  })
-} else {
-  currentURL = "https://www.google.com"
-  $("#url").text(currentURL).attr("title", currentURL);
-  $(document).ready(function () {
-    initHomepage();
-  })
-}
-chrome.storage.sync.get(['jwtToken', 'username'], function (result) {
-  if (result.jwtToken) {
-    const now = Date.now()
-    const expiry = jwt_decode(result.jwtToken).exp * 1000;
-    if (expiry > now) {
-      console.log('RESULT', result)
-      console.log(`jwt token still valid for ${(expiry - now) / 1000 / 60} minutes`)
-      $('.intro-container').hide()
-      jwtToken = result.jwtToken;
-      initHomepage(result.username)
-    } else {
-      console.log(`jwt token expired ${(now - expiry) / 1000 / 60} minutes ago`)
+chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
+  const parsedURL = new URL(tabs[0].url);
+  const url =
+    parsedURL.protocol + "//" + parsedURL.hostname + parsedURL.pathname;
+  currentURL = url;
+  $("#url").text(url).attr("title", url);
+  chrome.storage.sync.get(['jwtToken', 'username'], function (result) {
+    if (result.jwtToken) {
+      const now = Date.now()
+      let expiry;
+      let validToken = true;
+      try {
+        expiry = jwt_decode(result.jwtToken).exp * 1000;
+      } catch (err) {
+        console.log('bad token')
+        validToken = false;
+      }
+      if (validToken) {
+        if (expiry > now) {
+          console.log('RESULT', result)
+          console.log(`jwt token still valid for ${(expiry - now) / 1000 / 60} minutes`)
+          $('.intro-container').hide()
+          jwtToken = result.jwtToken;
+          $(document).ready(function () {
+            initHomepage(result.username)
+          })
+        } else {
+          console.log(`jwt token expired ${(now - expiry) / 1000 / 60} minutes ago`)
+        }
+      }
     }
-  }
-});
+  });
+})
+//  else {
+//   currentURL = "https://www.google.com"
+//   $("#url").text(currentURL).attr("title", currentURL);
+// }
+
 
 const skipIntroForDev = false;
 if (skipIntroForDev) {
@@ -250,8 +273,8 @@ $("#register-button").on("click", function () {
           confirmpassword: confirmPassword
         },
         success: function (data) {
-          console.log('success', data)
           const jwt = data.token;
+          jwtToken = jwt;
           chrome.storage.sync.set({ jwtToken: jwt, username }, function () {
             finishLoading(document.body)
             $(".intro-container").fadeOut(function () {
@@ -260,11 +283,14 @@ $("#register-button").on("click", function () {
             });
           });
         }, error: function (data) {
-          console.log('error', data)
           finishLoading()
-          const parsedData = JSON.parse(data.responseText)
+          try{
+            const parsedData = JSON.parse(data.responseText)
           const firstError = Object.values(parsedData.errors)[0]
           $('#register-error').text(firstError)
+          }catch(err){
+            showErrorMessage('An error occurred. Try closing/reopening this extension', 5000);
+          }
         }
       })
     }, 1000)
