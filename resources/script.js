@@ -73,8 +73,12 @@ if (skipIntroForDev) {
 }
 
 const navItemInitFunctions = {
-  "reviews": loadSiteReviews
+  "reviews": loadSiteReviews,
+  "your-reviews": loadUserReviews
 }
+$(document).ready(function () {
+  loadUserReviews()
+})
 
 $(document).on('click', ".nav-item, .page-director", function () {
   if ($(this).hasClass("nav-item")) {
@@ -284,11 +288,11 @@ $("#register-button").on("click", function () {
           });
         }, error: function (data) {
           finishLoading()
-          try{
+          try {
             const parsedData = JSON.parse(data.responseText)
-          const firstError = Object.values(parsedData.errors)[0]
-          $('#register-error').text(firstError)
-          }catch(err){
+            const firstError = Object.values(parsedData.errors)[0]
+            $('#register-error').text(firstError)
+          } catch (err) {
             showErrorMessage('An error occurred. Try closing/reopening this extension', 5000);
           }
         }
@@ -583,8 +587,10 @@ $('#new-tag-button').on('click', function () {
 /* boot up */
 
 function initHomepage(username) {
-  $('#profile-name').text(username)
-  loadSiteReviews(jwtToken)
+  $(document).ready(function () {
+    $('#profile-name').text(username)
+    loadSiteReviews(jwtToken)
+  })
 }
 
 /* site reviews section */
@@ -593,7 +599,6 @@ const ratingAverageLabel = $('#reviews .rating-container .rating .rating-value')
 
 function loadSiteReviews(sortOption, callbackOnFinish) {
   startLoading(navContentArea)
-  reviewsSection.hide();
   setTimeout(function () {
     const requestData = {
       url: currentURL
@@ -607,9 +612,11 @@ function loadSiteReviews(sortOption, callbackOnFinish) {
       data: requestData,
       headers: { "Authorization": "Bearer " + jwtToken },
       success: function (data) {
-        handleSiteReviewData(data.data)
+        reviews.empty()
+        processReviewsMetadata(data.data)
+        processReviewsData(data.data.reviews, reviews)
         finishLoading(navContentArea)
-        reviewsSection.show()
+        // reviewsSection.addClass('active')
         if (callbackOnFinish) {
           callbackOnFinish(true)
         }
@@ -629,10 +636,7 @@ const reviews = $('#reviews .reviews')
 const reviewsCountLabel = $('#reviews-count')
 const websiteReviewStars = $('#reviews .rating-container .rating .rating-stars .material-icons')
 
-function handleSiteReviewData(data) {
-  const now = Date.now();
-  reviews.empty()
-
+function processReviewsMetadata(data) {
   const totalReviews = data.totalReviews
   reviewsCountLabel.text(conditionallyPlurify(totalReviews, 'review'))
   const averageRating = parseFloat(data.averageRating).toFixed(1)
@@ -652,14 +656,17 @@ function handleSiteReviewData(data) {
     firstFullStars.last().next('.material-icons').html('star_half')
   }
 
-  console.log(data)
+}
 
-  if (data.reviews.length == 0) {
-    reviews.html('<i class="empty-label">No reviews made yet. Want to <span class="link-suggestion page-director" data-key="edit-review">be the first</span>?</i>')
+function processReviewsData(data, container) {
+  const now = Date.now();
+
+  if (data.length == 0) {
+    container.html('<i class="empty-label">No reviews made yet. Want to <span class="link-suggestion page-director" data-key="edit-review">be the first</span>?</i>')
   }
 
-  data.reviews.forEach(review => {
-    const reviewElement = $(`<div class="review"><div class="review-metadata"><div class="review-author"></div><div class="review-date"></div></div><div class="review-stars"><span class="material-icons">star_border</span><span class="material-icons">star_border</span><span class="material-icons">star_border</span><span class="material-icons">star_border</span><span class="material-icons">star_border</span></div><div class="review-message"></div><div class="tags-area"><div class="tags-label"><span class="material-icons">label</span><div>Tags:</div></div><div class="tags"></div></div></div>`);
+  data.forEach(review => {
+    const reviewElement = $(`<div class="review"><div class="review-metadata"><div class="review-author"></div><div class="review-date"></div></div><div class="review-stars"><span class="material-icons">star_border</span><span class="material-icons">star_border</span><span class="material-icons">star_border</span><span class="material-icons">star_border</span><span class="material-icons">star_border</span></div><div class="review-message"></div><div class="tags-area"><div class="tags-label"><span class="material-icons">sell</span><div>Tags:</div></div><div class="tags"></div></div></div>`);
     reviewElement.find('.review-metadata .review-author').text(review.author.username)
 
     const timeDifferenceMs = now - (review.createdDateTime * 1000)
@@ -671,12 +678,8 @@ function handleSiteReviewData(data) {
       $(this).text(review.formattedDateTime)
     })
 
-    let prevTimeout;
     reviewDateElement.on('mouseleave', function () {
-      clearTimeout(prevTimeout)
-      prevTimeout = setTimeout(() => {
-        $(this).text(timeDifferenceReadable)
-      }, 500)
+      $(this).text(timeDifferenceReadable)
     })
     const reviewTagsArea = reviewElement.find('.tags-area')
     const reviewTagsContainer = reviewElement.find('.tags')
@@ -691,32 +694,201 @@ function handleSiteReviewData(data) {
 
 
     reviewElement.find('.review-message').text(review.text)
-    reviews.append(reviewElement)
+    container.append(reviewElement)
+
   })
 }
 
 /* reviews sort */
 
 const reviewsSortPopup = $('#reviews-sort-popup')
-const reviewsSortOptions = $('.reviews-sort-option', reviewsSortPopup)
+const reviewsSortOptions = $('.expandable-option', reviewsSortPopup)
 
 reviewsSortPopup.on('click', function (e) {
   e.stopPropagation();
 })
 
+// website reviews sorting
 reviewsSortOptions.on('click', function () {
-  const option = $(this).find('.reviews-sort-option-label').text().trim().toLowerCase().trim()
+  const option = $(this).find('.expandable-option-label').text().trim().toLowerCase().trim()
   loadSiteReviews(option, function (didSucceed) {
     if (didSucceed) {
       reviewsSortOptions.find('.material-icons').hide();
       reviewsSortOptions.filter(`[data-def="${option}"]`).find('.material-icons').show()
-      console.log(reviewsSortOptions.filter(`[data-def="${option}"]`))
     }
   })
   closeExpandablePopup(reviewsSortPopup)
 })
 
+/* user reviews */
+
+const userReviewsSection = $('#your-reviews')
+const userReviewsReviewsArea = $('#your-reviews .reviews');
+
+function loadUserReviews(sortOption, tagFilter, callback) {
+  startLoading(userReviewsSection)
+  const data = {}
+  if (sortOption) {
+    data.sortOption = sortOption;
+  }
+  if (tagFilter) {
+    data.tagFilter = tagFilter;
+  }
+
+  setTimeout(function () {
+    $.ajax({
+      url: endpointURL + 'reviews/me',
+      data,
+      method: "POST",
+      headers: { "Authorization": "Bearer " + jwtToken },
+      success: function (data) {
+        if (!sortOption && !tagFilter) {
+          renderTagsDropdown(data.data)
+        }
+        finishLoading(userReviewsSection)
+        if (data.success) {
+          userReviewsReviewsArea.empty()
+          processReviewsData(data.data, userReviewsReviewsArea)
+          if (callback) {
+            callback(true)
+          }
+        }
+      },
+      error: function (data) {
+        finishLoading(userReviewsSection)
+        if (callback) {
+          callback(false)
+        }
+      }
+    })
+  }, 500)
+}
+
+const userReviewsSortPopup = $('#your-reviews #your-reviews-sort-popup')
+
+
+$('#your-reviews-search').on('input', function () {
+  const query = $(this).val()
+  let foundResults = 0;
+  userReviewsReviewsArea.find('.review').each(function () {
+    const review = $(this)
+    if (review.find('.review-message').text().trim().toLowerCase().includes(query.toLowerCase())) {
+      review.show();
+      foundResults++;
+    } else {
+      review.hide();
+    }
+  })
+  userReviewsReviewsArea.find('i.empty-label').remove()
+  if (foundResults == 0) {
+    userReviewsReviewsArea.append(`
+    <i class="empty-label">No results for '${query}'</i>
+    `)
+  }
+})
+
+let selectedUserReviewsSortOption;
+
+const userReviewsSortOptions = $('.expandable-option', userReviewsSortPopup)
+userReviewsSortOptions.on('click', function () {
+  const sortOption = $(this)
+  const sortOptionText = sortOption.find('.expandable-option-label').text().trim()
+  selectedUserReviewsSortOption = sortOptionText
+  userReviewsReviewsArea.empty()
+  closeExpandablePopup(userReviewsSortPopup)
+  loadUserReviews(sortOptionText, selectedTagFilterId, function (didSucceed) {
+    if (didSucceed) {
+      userReviewsSortOptions.find('.material-icons').hide();
+      sortOption.find('.material-icons').show()
+    }
+  })
+})
+
+userReviewsSortPopup.on('click', function (e) {
+  e.stopPropagation();
+})
+
+/* reviews tag filter */
+
+
+const userReviewsTagFilterPopup = $('#your-reviews #your-reviews-tag-filter-popup')
+userReviewsTagFilterPopup.on('click', function (e) {
+  e.stopPropagation();
+})
+
+function renderTagsDropdown(data) {
+  const tags = {}
+  data.forEach(review => {
+    review.tags.forEach(tag => {
+      if (!tags[tag.id]) {
+        tags[tag.id] = tag;
+      }
+    })
+  })
+  userReviewsTagFilterPopup.empty();
+  const allTagsFilter = $(`<div class="expandable-option"><span class="material-icons">check</span><div class="expandable-option-label"><span class="expandable-option-label-text">None</span></div></div>`)
+  userReviewsTagFilterPopup.append(allTagsFilter)
+  if(!selectedTagFilterId){
+    allTagsFilter.find('.material-icons').show()
+  }
+
+  Object.values(tags).forEach(tag => {
+    const tagElem = $(`<div class="expandable-option" data-def="recent" data-id="${tag.id}"><span class="material-icons">check</span><div class="expandable-option-label"><span class="material-icons">${tag.private ? 'visibility_off' : 'visibility'}</span><span class="expandable-option-label-text"></span></div></div>`)
+
+    const invertedColor = invertColorToBW(tag.color)
+    tagElem.find('.expandable-option-label > .material-icons').css({
+      backgroundColor: '#' + tag.color,
+      color: invertedColor,
+      borderColor: invertedColor
+    })
+    tagElem.find('.expandable-option-label-text').text(tag.name)
+    tagElem.data('id', tag.id)
+    userReviewsTagFilterPopup.append(tagElem)
+  })
+}
+
+let selectedTagFilterId;
+
+$(userReviewsTagFilterPopup).on('click', '.expandable-option', function () {
+  const id = $(this).data('id')
+  selectedTagFilterId = id;
+  console.log(id)
+  closeExpandablePopup(userReviewsTagFilterPopup)
+  loadUserReviews(selectedUserReviewsSortOption, selectedTagFilterId, function (didSucceed) {
+    if (didSucceed) {
+      userReviewsTagFilterPopup.find('.expandable-option > .material-icons').hide()
+      if(!selectedTagFilterId){
+        userReviewsTagFilterPopup.find('.expandable-option').first().find('.material-icons').show()
+      }else{
+        userReviewsTagFilterPopup.find(`.expandable-option[data-id="${id}"] .material-icons`).show()
+      }
+    }
+  })
+})
+
 /* general */
+
+$(document).on("click", function (e) {
+  if (!e.target.closest('#profile-popup')) {
+    profilePopup.hide()
+  }
+
+  if (!e.target.closest('#new-tag-popup')) {
+    newTagPopup.hide()
+  }
+
+  if (!e.target.closest('#reviews-sort-popup')) {
+    closeExpandablePopup(reviewsSortPopup)
+  }
+
+  if (!e.target.closest('#your-reviews-sort-popup')) {
+    closeExpandablePopup(userReviewsSortPopup)
+  }
+
+  if (!e.target.closest('#your-reviews-tag-filter-popup')) {
+    closeExpandablePopup(userReviewsTagFilterPopup)
+  }
+});
 
 function convertMsToReadable(ms) {
   const seconds = Math.floor(ms / 1000), minutes = Math.floor(seconds / 60), hours = Math.floor(minutes / 60), days = Math.floor(hours / 24), weeks = Math.floor(days / 30), year = Math.floor(days / 365);
@@ -793,20 +965,6 @@ $('#log-out-button').on('click', function () {
     })
   })
 })
-
-$(document).on("click", function (e) {
-  if (!e.target.closest('#profile-popup')) {
-    profilePopup.hide()
-  }
-
-  if (!e.target.closest('#new-tag-popup')) {
-    newTagPopup.hide()
-  }
-
-  if (!e.target.closest('#reviews-sort-popup')) {
-    closeExpandablePopup(reviewsSortPopup)
-  }
-});
 
 /* notifications */
 
