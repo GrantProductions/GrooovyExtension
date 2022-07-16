@@ -2,6 +2,7 @@
 <html>
 
 <head>
+  <meta charset="UTF-8"/>
   <link rel="stylesheet" href="resources/icons/icons.css" />
   <link rel="stylesheet" href="resources/styles.css" />
 </head>
@@ -71,8 +72,8 @@
   </div>
   <div class="container">
     <div id="nav">
-      <div class="nav-item " data-key="reviews">Reviews</div>
-      <div class="nav-item active" data-key="your-reviews">
+      <div class="nav-item active" data-key="reviews">Reviews</div>
+      <div class="nav-item" data-key="your-reviews">
         Your Reviews
       </div>
     </div>
@@ -89,7 +90,7 @@
           <span class="material-icons">star_border</span>
         </div>
         <br />
-        <textarea id="review-text" placeholder="Explain your rating... (placeholder)"></textarea>
+        <textarea id="review-text" placeholder="Explain your rating... (optional)"></textarea>
         <br />
         <br />
         <div id="tags-heading">
@@ -151,7 +152,7 @@
           <button id="submit-review">Submit</button>
         </div>
       </div>
-      <div class="nav-content" id="reviews" data-key="reviews">
+      <div class="nav-content active" id="reviews" data-key="reviews">
         <div id="new-review" class="page-director" data-key="edit-review">
           <span class="material-icons">add</span> Review This Site
         </div>
@@ -210,7 +211,7 @@
               sort
             </span>
             Sort
-            <div id="reviews-sort-popup" class="expandable-popup" data-width="150" data-height="150">
+            <div id="reviews-sort-popup" class="expandable-popup">
               <div class="expandable-option" data-def="recent"><span class="material-icons"
                   style="display: block">check</span><span class="expandable-option-label">Recent</span></div>
               <div class="expandable-option" data-def="older"><span class="material-icons">check</span><span
@@ -224,7 +225,7 @@
         </div>
         <div class="reviews"></div>
       </div>
-      <div class="nav-content active" id="your-reviews">
+      <div class="nav-content" id="your-reviews">
         <div id="your-reviews-header">
           <h3>Your Reviews</h3>
           <div id="your-reviews-options">
@@ -251,7 +252,7 @@
               Tag
               <div id="your-reviews-tag-filter-popup" class="expandable-popup" data-width="150" data-height="150"></div>
             </div>
-            <input id="your-reviews-search" placeholder="Search...">
+            <input id="your-reviews-search" placeholder="Search">
           </div>
         </div>
         <div class="reviews"></div>

@@ -33,7 +33,7 @@ chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
   const url =
     parsedURL.protocol + "//" + parsedURL.hostname + parsedURL.pathname;
   currentURL = url;
-  $("#url").text(url).attr("title", url);
+  $("#url").text(decodeURI(url)).attr("title", decodeURI(url));
   chrome.storage.sync.get(['jwtToken', 'username'], function (result) {
     if (result.jwtToken) {
       const now = Date.now()
@@ -76,9 +76,6 @@ const navItemInitFunctions = {
   "reviews": loadSiteReviews,
   "your-reviews": loadUserReviews
 }
-$(document).ready(function () {
-  loadUserReviews()
-})
 
 $(document).on('click', ".nav-item, .page-director", function () {
   if ($(this).hasClass("nav-item")) {
@@ -90,7 +87,8 @@ $(document).on('click', ".nav-item, .page-director", function () {
     navItemInitFunctions[key]();
   }
   $("#nav-content .nav-content.active").removeClass("active");
-  $(`#nav-content .nav-content#${key}`).addClass("active");
+  const target = $(`#nav-content .nav-content#${key}`)
+  target.addClass('active').scrollTop(0)
 })
 
 $(".intro-container #intro-options h2").on("click", function () {
@@ -658,7 +656,7 @@ function processReviewsMetadata(data) {
 
 }
 
-function processReviewsData(data, container) {
+function processReviewsData(data, container, includeReviewURL) {
   const now = Date.now();
 
   if (data.length == 0) {
@@ -666,8 +664,11 @@ function processReviewsData(data, container) {
   }
 
   data.forEach(review => {
-    const reviewElement = $(`<div class="review"><div class="review-metadata"><div class="review-author"></div><div class="review-date"></div></div><div class="review-stars"><span class="material-icons">star_border</span><span class="material-icons">star_border</span><span class="material-icons">star_border</span><span class="material-icons">star_border</span><span class="material-icons">star_border</span></div><div class="review-message"></div><div class="tags-area"><div class="tags-label"><span class="material-icons">sell</span><div>Tags:</div></div><div class="tags"></div></div></div>`);
+    const reviewElement = $(`<div class="review"><div class="review-metadata"><div class="review-author"></div><div class="review-date"></div>${includeReviewURL ? '<div class="review-url"></div>' : ''}</div><div class="review-stars"><span class="material-icons">star_border</span><span class="material-icons">star_border</span><span class="material-icons">star_border</span><span class="material-icons">star_border</span><span class="material-icons">star_border</span></div><div class="review-message"></div><div class="tags-area"><div class="tags-label"><span class="material-icons">sell</span><div>Tags:</div></div><div class="tags"></div></div></div>`);
     reviewElement.find('.review-metadata .review-author').text(review.author.username)
+    if (includeReviewURL) {
+      reviewElement.find('.review-metadata .review-url').text(decodeURI(review.url))
+    }
 
     const timeDifferenceMs = now - (review.createdDateTime * 1000)
     const timeDifferenceReadable = convertMsToReadable(timeDifferenceMs)
@@ -748,7 +749,7 @@ function loadUserReviews(sortOption, tagFilter, callback) {
         finishLoading(userReviewsSection)
         if (data.success) {
           userReviewsReviewsArea.empty()
-          processReviewsData(data.data, userReviewsReviewsArea)
+          processReviewsData(data.data, userReviewsReviewsArea, true)
           if (callback) {
             callback(true)
           }
@@ -766,24 +767,56 @@ function loadUserReviews(sortOption, tagFilter, callback) {
 
 const userReviewsSortPopup = $('#your-reviews #your-reviews-sort-popup')
 
+const regexQueryRegex = /\/.+\//g
 
-$('#your-reviews-search').on('input', function () {
+const userReviewsSearch = $('#your-reviews-search')
+
+userReviewsSearch.on('input', function () {
   const query = $(this).val()
+  const lowercaseQuery = query.toLowerCase()
   let foundResults = 0;
+  let isRegex = regexQueryRegex.test(query)
+  let parsedRegex;
+  if (isRegex) {
+    parsedRegex = new RegExp(query.substring(1, query.length - 1), "g");
+  }
   userReviewsReviewsArea.find('.review').each(function () {
     const review = $(this)
-    if (review.find('.review-message').text().trim().toLowerCase().includes(query.toLowerCase())) {
-      review.show();
-      foundResults++;
+    const reviewMessage = review.find('.review-message').text().trim()
+    if (isRegex) {
+      if (parsedRegex.exec(reviewMessage)) {
+        review.show();
+        foundResults++;
+      } else {
+        review.hide();
+      }
     } else {
-      review.hide();
+      if (reviewMessage.toLowerCase().includes(lowercaseQuery)) {
+        review.show();
+        foundResults++
+      } else {
+        review.hide();
+      }
     }
   })
+
   userReviewsReviewsArea.find('i.empty-label').remove()
   if (foundResults == 0) {
-    userReviewsReviewsArea.append(`
-    <i class="empty-label">No results for '${query}'</i>
-    `)
+    const emptyLabel = $(`<i class="empty-label"></i>`)
+    emptyLabel.text(`No results for '${query}'`)
+    userReviewsReviewsArea.append(emptyLabel)
+  } else {
+    $(this).find('.empty-label').remove()
+  }
+})
+
+userReviewsSearch.on('mouseenter focus', function(){
+  $(this).attr('placeholder', 'Search (text or /regex/)')
+})
+
+userReviewsSearch.on('mouseleave blur', function(){
+  if(!$(this).is(':focus')){
+    $(this).attr('placeholder', 'Search...')
   }
 })
 
@@ -828,7 +861,7 @@ function renderTagsDropdown(data) {
   userReviewsTagFilterPopup.empty();
   const allTagsFilter = $(`<div class="expandable-option"><span class="material-icons">check</span><div class="expandable-option-label"><span class="expandable-option-label-text">None</span></div></div>`)
   userReviewsTagFilterPopup.append(allTagsFilter)
-  if(!selectedTagFilterId){
+  if (!selectedTagFilterId) {
     allTagsFilter.find('.material-icons').show()
   }
 
@@ -857,9 +890,9 @@ $(userReviewsTagFilterPopup).on('click', '.expandable-option', function () {
   loadUserReviews(selectedUserReviewsSortOption, selectedTagFilterId, function (didSucceed) {
     if (didSucceed) {
       userReviewsTagFilterPopup.find('.expandable-option > .material-icons').hide()
-      if(!selectedTagFilterId){
+      if (!selectedTagFilterId) {
         userReviewsTagFilterPopup.find('.expandable-option').first().find('.material-icons').show()
-      }else{
+      } else {
         userReviewsTagFilterPopup.find(`.expandable-option[data-id="${id}"] .material-icons`).show()
       }
     }
@@ -926,8 +959,10 @@ function finishLoading(element) {
 $(document).on('click', '.expandable-popup-trigger', function (e) {
   const key = $(this).data('key')
   const popupElement = $(`.expandable-popup#${key}`)
-  const [desiredWidth, desiredHeight] = [popupElement.data('width'), popupElement.data('height')]
-  popupElement.css('display', 'flex').animate({
+  popupElement.show();
+  const [desiredWidth, desiredHeight] = [popupElement.outerWidth(), popupElement.outerHeight()]
+  popupElement.hide()
+  popupElement.css({ 'display': 'flex', 'height': 0, 'width': 0 }).animate({
     width: desiredWidth,
     height: desiredHeight
   }, 300)
@@ -935,12 +970,7 @@ $(document).on('click', '.expandable-popup-trigger', function (e) {
 })
 
 function closeExpandablePopup(popup) {
-  popup.fadeOut(100, function () {
-    popup.css({
-      width: 0,
-      height: 0
-    })
-  })
+  popup.fadeOut(100)
 }
 
 /* profile controls */

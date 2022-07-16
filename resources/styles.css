@@ -171,8 +171,6 @@ hr {
   z-index: 1;
   border-radius: 5px;
   border: 1px solid rgb(237, 237, 237);
-  width: 0;
-  height: 0;
   display: flex;
   flex-direction: column;
   padding: 5px 0;
@@ -386,6 +384,11 @@ hr {
   margin-right: 10px;
 }
 
+#reviews-header #reviews-sort #reviews-sort-popup{
+  height: 150px;
+  width: 150px;
+}
+
 #reviews-header #reviews-sort #reviews-sort-popup .material-icons{
   display: none;
 }
@@ -510,6 +513,20 @@ hr {
 .reviews .review .review-metadata .review-date {
   color: #808080;
   cursor: default;
+  white-space: nowrap;
+}
+
+.reviews .review .review-metadata .review-url {
+  margin-left: 5px;
+  color: #808080;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reviews .review .review-metadata .review-url::before{
+  content: "•";
+  margin-right: 5px;
 }
 
 .reviews .review .review-stars {
@@ -917,6 +934,10 @@ hr {
   outline: none;
 }
 
+#your-reviews #your-reviews-header #your-reviews-options #your-reviews-search:hover,#your-reviews #your-reviews-header #your-reviews-options #your-reviews-search:focus{
+  width: 155px;
+}
+
 
 #your-reviews-header #your-reviews-sort-popup .expandable-option > .material-icons, #your-reviews-header #your-reviews-tag-filter-popup  .expandable-option > .material-icons {
   display: none;
@@ -926,6 +947,10 @@ hr {
   max-height: 35px;
   min-height: 35px;
   overflow: hidden;
+}
+
+#your-reviews-header #your-reviews-sort-popup{
+  width: 150px;
 }
 
 #your-reviews-header #your-reviews-tag-filter-popup{
