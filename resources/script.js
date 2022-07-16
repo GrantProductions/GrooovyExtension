@@ -480,6 +480,8 @@ reviewTags.on('click', '.tag .material-icons.delete-tag', function (e) {
 
 $(document).on('click', '#edit-review #tag-input-suggestions .link-suggestion', function (e) {
   newTagPopup.show();
+  newTagNameInput.val(addTagInput.val())
+  newTagNameInput.focus()
   e.stopPropagation()
 })
 
@@ -564,6 +566,7 @@ $('#new-tag-button').on('click', function () {
             newTagNameInput.val('')
             tagColorCustomHex.val('')
             tagColorActiveIndicator.remove()
+            addTagInput.trigger('input')
             $('#new-tag-popup .privacy-option.active').removeClass('active')
             showSuccessMessage(`Created new tag '${newTagName}'`, 5000)
           }
