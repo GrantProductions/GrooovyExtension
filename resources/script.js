@@ -1134,8 +1134,10 @@ function parseChunksIntoURL(chunks) {
 $(document).on("click", function (e) {
   if (!e.target.closest("#url-bar")) {
     urlBar.attr("contenteditable", false);
-    urlBar.empty();
-    convertChunksToElems(barChunks);
+    if (barChunks) {
+      urlBar.empty();
+      convertChunksToElems(barChunks);
+    }
   }
 });
 
