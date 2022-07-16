@@ -44,7 +44,7 @@ chrome.storage.sync.get(['jwtToken', 'username'], function (result) {
   }
 });
 
-const skipIntroForDev = true;
+const skipIntroForDev = false;
 if (skipIntroForDev) {
   $(".intro-container").hide();
 }
@@ -121,7 +121,7 @@ $("#login-button").on("click", function () {
 
   if (shouldHideUsernameError && shouldHidePasswordError) {
     $('#login-error').text('')
-    startLoading()
+    startLoading(document.body)
     setTimeout(function () {
       $.ajax({
         url: endpointURL + 'authenticate',
@@ -133,7 +133,7 @@ $("#login-button").on("click", function () {
         success: function (data) {
           const jwt = data.token;
           chrome.storage.sync.set({ jwtToken: jwt, username }, function () {
-            finishLoading()
+            finishLoading(document.body)
             jwtToken = jwt;
             $(".intro-container").fadeOut(function () {
               $(".container").fadeIn();
@@ -238,7 +238,7 @@ $("#register-button").on("click", function () {
     shouldHideConfirmPasswordError
   ) {
     $("#register-error").text('')
-    startLoading()
+    startLoading(document.body)
     setTimeout(function () {
       $.ajax({
         url: endpointURL + 'register',
@@ -253,7 +253,7 @@ $("#register-button").on("click", function () {
           console.log('success', data)
           const jwt = data.token;
           chrome.storage.sync.set({ jwtToken: jwt, username }, function () {
-            finishLoading()
+            finishLoading(document.body)
             $(".intro-container").fadeOut(function () {
               $(".container").fadeIn();
               initHomepage(username, jwt)
