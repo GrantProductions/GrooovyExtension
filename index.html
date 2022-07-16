@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <meta charset="UTF-8"/>
+  <meta charset="UTF-8" />
   <link rel="stylesheet" href="resources/icons/icons.css" />
   <link rel="stylesheet" href="resources/styles.css" />
 </head>
@@ -72,9 +72,12 @@
   </div>
   <div class="container">
     <div id="nav">
-      <div class="nav-item active" data-key="reviews">Reviews</div>
+      <div class="nav-item" data-key="reviews">Reviews</div>
       <div class="nav-item" data-key="your-reviews">
         Your Reviews
+      </div>
+      <div class="nav-item active" data-key="explorer">
+        Explorer
       </div>
     </div>
     <div id="nav-content">
@@ -152,53 +155,55 @@
           <button id="submit-review">Submit</button>
         </div>
       </div>
-      <div class="nav-content active" id="reviews" data-key="reviews">
+      <div class="nav-content" id="reviews" data-key="reviews">
         <div id="new-review" class="page-director" data-key="edit-review">
           <span class="material-icons">add</span> Review This Site
         </div>
         <h3>Website rating</h3>
         <div id="url"></div>
-        <div id="reviews-count">0</div>
-        <div class="rating-container">
-          <div class="rating">
-            <div class="rating-value">...</div>
-            <div class="rating-stars">
-              <span class="material-icons">star_border</span>
-              <span class="material-icons">star_border</span>
-              <span class="material-icons">star_border</span>
-              <span class="material-icons">star_border</span>
-              <span class="material-icons">star_border</span>
-            </div>
-          </div>
-          <div class="rating-distribution">
-            <div class="rating-bar-container">
-              <div class="rating-value">5</div>
-              <div class="rating-bar" data-def="fives">
-                <div></div>
+        <div class="rating">
+          <div class="reviews-count"></div>
+          <div class="rating-container">
+            <div class="rating-general">
+              <div class="rating-value">...</div>
+              <div class="rating-stars">
+                <span class="material-icons">star_border</span>
+                <span class="material-icons">star_border</span>
+                <span class="material-icons">star_border</span>
+                <span class="material-icons">star_border</span>
+                <span class="material-icons">star_border</span>
               </div>
             </div>
-            <div class="rating-bar-container">
-              <div class="rating-value">4</div>
-              <div class="rating-bar" data-def="fours">
-                <div></div>
+            <div class="rating-distribution">
+              <div class="rating-bar-container">
+                <div class="rating-value">5</div>
+                <div class="rating-bar" data-def="fives">
+                  <div></div>
+                </div>
               </div>
-            </div>
-            <div class="rating-bar-container">
-              <div class="rating-value">3</div>
-              <div class="rating-bar" data-def="threes">
-                <div></div>
+              <div class="rating-bar-container">
+                <div class="rating-value">4</div>
+                <div class="rating-bar" data-def="fours">
+                  <div></div>
+                </div>
               </div>
-            </div>
-            <div class="rating-bar-container">
-              <div class="rating-value">2</div>
-              <div class="rating-bar" data-def="twos">
-                <div></div>
+              <div class="rating-bar-container">
+                <div class="rating-value">3</div>
+                <div class="rating-bar" data-def="threes">
+                  <div></div>
+                </div>
               </div>
-            </div>
-            <div class="rating-bar-container">
-              <div class="rating-value">1</div>
-              <div class="rating-bar" data-def="ones">
-                <div></div>
+              <div class="rating-bar-container">
+                <div class="rating-value">2</div>
+                <div class="rating-bar" data-def="twos">
+                  <div></div>
+                </div>
+              </div>
+              <div class="rating-bar-container">
+                <div class="rating-value">1</div>
+                <div class="rating-bar" data-def="ones">
+                  <div></div>
+                </div>
               </div>
             </div>
           </div>
@@ -256,6 +261,60 @@
           </div>
         </div>
         <div class="reviews"></div>
+      </div>
+      <div class="nav-content active" id="explorer">
+        <div id="url-bar"></div>
+        <div id="url-results">
+          <div class="rating">
+            <div class="reviews-count"></div>
+            <div class="rating-container">
+              <div class="rating-general">
+                <div class="rating-value">...</div>
+                <div class="rating-stars">
+                  <span class="material-icons">star_border</span>
+                  <span class="material-icons">star_border</span>
+                  <span class="material-icons">star_border</span>
+                  <span class="material-icons">star_border</span>
+                  <span class="material-icons">star_border</span>
+                </div>
+              </div>
+              <div class="rating-distribution">
+                <div class="rating-bar-container">
+                  <div class="rating-value">5</div>
+                  <div class="rating-bar" data-def="fives">
+                    <div></div>
+                  </div>
+                </div>
+                <div class="rating-bar-container">
+                  <div class="rating-value">4</div>
+                  <div class="rating-bar" data-def="fours">
+                    <div></div>
+                  </div>
+                </div>
+                <div class="rating-bar-container">
+                  <div class="rating-value">3</div>
+                  <div class="rating-bar" data-def="threes">
+                    <div></div>
+                  </div>
+                </div>
+                <div class="rating-bar-container">
+                  <div class="rating-value">2</div>
+                  <div class="rating-bar" data-def="twos">
+                    <div></div>
+                  </div>
+                </div>
+                <div class="rating-bar-container">
+                  <div class="rating-value">1</div>
+                  <div class="rating-bar" data-def="ones">
+                    <div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <hr />
+          <div class="reviews"></div>
+        </div>
       </div>
     </div>
   </div>

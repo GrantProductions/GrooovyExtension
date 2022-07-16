@@ -73,8 +73,9 @@ if (skipIntroForDev) {
 }
 
 const navItemInitFunctions = {
-  "reviews": loadSiteReviews,
-  "your-reviews": loadUserReviews
+  "reviews": () => loadSiteReviews(currentURL, reviewsSection, reviews),
+  "your-reviews": loadUserReviews,
+  "explorer": () => loadSiteReviews(currentURL, urlResults, urlResultsReviewsList)
 }
 
 $(document).on('click', ".nav-item, .page-director", function () {
@@ -112,71 +113,71 @@ const loginForm = {
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-$("#login-button").on("click",handleLoginAttempt);
+$("#login-button").on("click", handleLoginAttempt);
 
-$('#login input').on('keydown', function(e){
-  if(e.keyCode == 13){
+$('#login input').on('keydown', function (e) {
+  if (e.keyCode == 13) {
     handleLoginAttempt()
   }
 })
 
-function handleLoginAttempt(){
-    const username = loginForm.username.val();
-    let shouldHideUsernameError = true;
-    if (username.trim().length == 0) {
-      loginForm.username
-        .next(".error-label")
-        .text("Don't forget your username!");
-      shouldHideUsernameError = false;
-    }
-    if (shouldHideUsernameError) {
-      loginForm.username
-        .next(".error-label")
-        .text('');
-    }
-  
-    const password = loginForm.password.val();
-    let shouldHidePasswordError = true;
-    if (password.length == 0) {
-      loginForm.password
-        .next(".error-label")
-        .text("Wait! You forgot a password!");
-      shouldHidePasswordError = false;
-    } else if (password.length < 6) {
-      loginForm.password
-        .next(".error-label")
-        .html("Your password must be at least<br/> 6 characters!");
-      shouldHidePasswordError = false;
-    }
-    if (shouldHidePasswordError) {
-      loginForm.password.next(".error-label").text("");
-    }
-  
-    if (shouldHideUsernameError && shouldHidePasswordError) {
-      $('#login-error').text('')
-      startLoading(document.body)
-      setTimeout(function () {
-        $.ajax({
-          url: endpointURL + 'authenticate',
-          method: "POST",
-          data: {
-            username: username,
-            password: password,
-          },
-          success: function (data) {
-            const jwt = data.token;
-            chrome.storage.sync.set({ jwtToken: jwt, username }, function () {
-              finishLoading(document.body)
-              jwtToken = jwt;
-              $(".intro-container").fadeOut(function () {
-                $(".container").fadeIn();
-                clearFormValues(loginForm )
-                initHomepage(username)
-              });
+function handleLoginAttempt() {
+  const username = loginForm.username.val();
+  let shouldHideUsernameError = true;
+  if (username.trim().length == 0) {
+    loginForm.username
+      .next(".error-label")
+      .text("Don't forget your username!");
+    shouldHideUsernameError = false;
+  }
+  if (shouldHideUsernameError) {
+    loginForm.username
+      .next(".error-label")
+      .text('');
+  }
+
+  const password = loginForm.password.val();
+  let shouldHidePasswordError = true;
+  if (password.length == 0) {
+    loginForm.password
+      .next(".error-label")
+      .text("Wait! You forgot a password!");
+    shouldHidePasswordError = false;
+  } else if (password.length < 6) {
+    loginForm.password
+      .next(".error-label")
+      .html("Your password must be at least<br/> 6 characters!");
+    shouldHidePasswordError = false;
+  }
+  if (shouldHidePasswordError) {
+    loginForm.password.next(".error-label").text("");
+  }
+
+  if (shouldHideUsernameError && shouldHidePasswordError) {
+    $('#login-error').text('')
+    startLoading(document.body)
+    setTimeout(function () {
+      $.ajax({
+        url: endpointURL + 'authenticate',
+        method: "POST",
+        data: {
+          username: username,
+          password: password,
+        },
+        success: function (data) {
+          const jwt = data.token;
+          chrome.storage.sync.set({ jwtToken: jwt, username }, function () {
+            finishLoading(document.body)
+            jwtToken = jwt;
+            $(".intro-container").fadeOut(function () {
+              $(".container").fadeIn();
+              clearFormValues(loginForm)
+              initHomepage(username)
             });
-          }, error: function (data) {
-            finishLoading()
-            try{
+          });
+        }, error: function (data) {
+          finishLoading()
+          try {
             const parsedData = JSON.parse(data.responseText)
             if (parsedData.token == "Unauthorized") {
               $('#login-error').text("Invalid username and/or password")
@@ -185,24 +186,24 @@ function handleLoginAttempt(){
               const firstError = Object.values(parsedData.errors)[0]
               $('#login-error').text(firstError)
             }
-          }catch(err){
+          } catch (err) {
             showErrorMessage('An error occurred. Try closing/reopening this extension', 5000)
           }
-          }
-        })
-      }, 1000)
-    }
+        }
+      })
+    }, 1000)
+  }
 }
 
 const registerForm = {
   username: $('#register-username'),
   email: $("#register-email"),
-  password: $("#register-password"),  
+  password: $("#register-password"),
   confirmPassword: $("#register-password-confirm"),
 };
 
-$('#register input').on('keydown', function(e){
-  if(e.keyCode == 13){
+$('#register input').on('keydown', function (e) {
+  if (e.keyCode == 13) {
     handleRegisterAttempt();
   }
 })
@@ -323,7 +324,7 @@ function handleRegisterAttempt() {
 
 $("#click-block").click(false);
 
-function clearFormValues(obj){
+function clearFormValues(obj) {
   Object.values(obj).forEach(e => e.val(''))
 }
 
@@ -394,7 +395,7 @@ $('#edit-review #submit-review').on('click', function () {
             showSuccessMessage("Review posted", 5000)
             editReviewSection.removeClass('active');
             reviewsSection.addClass('active')
-            loadSiteReviews()
+            loadSiteReviews(currentURL, reviewsSection, reviews)
           }
         },
         error: function (data) {
@@ -613,7 +614,7 @@ $('#new-tag-button').on('click', function () {
 function initHomepage(username) {
   $(document).ready(function () {
     $('#profile-name').text(username)
-    loadSiteReviews(jwtToken)
+    loadSiteReviews(currentURL, reviewsSection, reviews)
   })
 }
 
@@ -621,11 +622,11 @@ function initHomepage(username) {
 
 const ratingAverageLabel = $('#reviews .rating-container .rating .rating-value')
 
-function loadSiteReviews(sortOption, callbackOnFinish) {
+function loadSiteReviews(url, reviewsMetadataContainer, reviewsListContainer, sortOption, callbackOnFinish) {
   startLoading(navContentArea)
   setTimeout(function () {
     const requestData = {
-      url: currentURL
+      url
     }
     if (sortOption) {
       requestData.sortOption = sortOption
@@ -637,10 +638,9 @@ function loadSiteReviews(sortOption, callbackOnFinish) {
       headers: { "Authorization": "Bearer " + jwtToken },
       success: function (data) {
         reviews.empty()
-        processReviewsMetadata(data.data)
-        processReviewsData(data.data.reviews, reviews)
+        processReviewsMetadata(data.data, reviewsMetadataContainer)
+        processReviewsData(data.data.reviews, reviewsListContainer)
         finishLoading(navContentArea)
-        // reviewsSection.addClass('active')
         if (callbackOnFinish) {
           callbackOnFinish(true)
         }
@@ -657,24 +657,23 @@ function loadSiteReviews(sortOption, callbackOnFinish) {
 }
 
 const reviews = $('#reviews .reviews')
-const reviewsCountLabel = $('#reviews-count')
 const websiteReviewStars = $('#reviews .rating-container .rating .rating-stars .material-icons')
 
-function processReviewsMetadata(data) {
+function processReviewsMetadata(data, container) {
   const totalReviews = data.totalReviews
-  reviewsCountLabel.text(conditionallyPlurify(totalReviews, 'review'))
+  $('.reviews-count', container).text(conditionallyPlurify(totalReviews, 'review'))
   const averageRating = parseFloat(data.averageRating).toFixed(1)
-  ratingAverageLabel.text(averageRating)
+  $('.rating-general .rating-value', container).text(averageRating)
 
   const ratingBarPropNames = ["fives", "fours", "threes", "twos", "ones"]
   ratingBarPropNames.forEach(prop => {
     const barWidth = ((data[prop] / totalReviews) * 100).toFixed(2)
-    $(`#reviews .rating-container .rating-distribution .rating-bar[data-def="${prop}"] > div`).css('width', barWidth + '%');
+    $(`.rating-container .rating-distribution .rating-bar[data-def="${prop}"] > div`, container).css('width', barWidth + '%');
   })
 
   websiteReviewStars.html('star_border')
   const numOfFullStars = Math.floor(data.averageRating)
-  const firstFullStars = $('#reviews .rating-container .rating .rating-stars .material-icons').slice(0, numOfFullStars)
+  const firstFullStars = $('.rating-container .rating .rating-stars .material-icons', container).slice(0, numOfFullStars)
   firstFullStars.html('star')
   if ((data.averageRating - numOfFullStars) >= 0.5) {
     firstFullStars.last().next('.material-icons').html('star_half')
@@ -738,7 +737,7 @@ reviewsSortPopup.on('click', function (e) {
 // website reviews sorting
 reviewsSortOptions.on('click', function () {
   const option = $(this).find('.expandable-option-label').text().trim().toLowerCase().trim()
-  loadSiteReviews(option, function (didSucceed) {
+  loadSiteReviews(currentURL, reviewsSection, reviews, option, function (didSucceed) {
     if (didSucceed) {
       reviewsSortOptions.find('.material-icons').hide();
       reviewsSortOptions.filter(`[data-def="${option}"]`).find('.material-icons').show()
@@ -836,12 +835,12 @@ userReviewsSearch.on('input', function () {
   }
 })
 
-userReviewsSearch.on('mouseenter focus', function(){
+userReviewsSearch.on('mouseenter focus', function () {
   $(this).attr('placeholder', 'Search (text or /regex/)')
 })
 
-userReviewsSearch.on('mouseleave blur', function(){
-  if(!$(this).is(':focus')){
+userReviewsSearch.on('mouseleave blur', function () {
+  if (!$(this).is(':focus')) {
     $(this).attr('placeholder', 'Search...')
   }
 })
@@ -924,6 +923,75 @@ $(userReviewsTagFilterPopup).on('click', '.expandable-option', function () {
     }
   })
 })
+
+/* explorer */
+
+let barURL = currentURL
+let barChunks = parseURLIntoChunks(barURL)
+
+const urlBar = $('#explorer #url-bar')
+
+
+convertChunksToElems(barChunks)
+urlBar.on('click', function () {
+  if (urlBar.prop('contenteditable') != 'true') {
+    urlBar.attr('contenteditable', true).focus().empty().text(barURL)
+  }
+})
+
+urlBar.on('click', '.url-part', function (e) {
+  const index = $(this).data('index')
+  e.stopPropagation();
+  barChunks = barChunks.slice(0, index + 1)
+  urlBar.empty()
+  convertChunksToElems(barChunks)
+  barURL = parseChunksIntoURL(barChunks);
+  getURLResults(barURL)
+})
+
+urlBar.on('keydown', function (e) {
+  if (e.keyCode == 13 && urlBar.prop('contenteditable') == 'true') {
+    urlBar.attr('contenteditable', false)
+    const newURL = urlBar.text()
+    barURL = newURL;
+    urlBar.empty()
+    convertChunksToElems(parseURLIntoChunks(newURL))
+    getURLResults(barURL)
+  }
+})
+
+function parseURLIntoChunks(url) {
+  const parsedURL = new URL(url)
+  return [parsedURL.protocol, parsedURL.hostname, ...parsedURL.pathname.split('/').filter(e => e)]
+}
+
+function convertChunksToElems(chunks) {
+  chunks.forEach((chunk, index) => {
+    const chunkElem = $(`<div class="url-part"><div class="url-part-label"></div><span class="material-icons">arrow_right</span></div>`)
+    chunkElem.data('index', index)
+    chunkElem.find('.url-part-label').text(chunk)
+    urlBar.append(chunkElem)
+  })
+}
+
+function parseChunksIntoURL(chunks) {
+  return chunks[0] + '//' + chunks[1] + '/' + chunks.slice(2).join('/')
+}
+
+$(document).on('click', function (e) {
+  if (!e.target.closest('#url-bar')) {
+    urlBar.attr('contenteditable', false)
+    urlBar.empty()
+    convertChunksToElems(barChunks)
+  }
+})
+
+const urlResults = $('#url-results')
+const urlResultsReviewsList = $('.reviews', urlResults)
+function getURLResults(url) {
+  urlResultsReviewsList.empty()
+  loadSiteReviews(url, urlResults, urlResultsReviewsList)
+}
 
 /* general */
 
