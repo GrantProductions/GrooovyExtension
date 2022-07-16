@@ -53,18 +53,18 @@ const navItemInitFunctions = {
   "reviews": loadSiteReviews
 }
 
-$(".nav-item, .page-director").on("click", function () {
+$(document).on('click', ".nav-item, .page-director", function () {
   if ($(this).hasClass("nav-item")) {
     $(".nav-item.active").removeClass("active");
     $(this).addClass("active");
   }
   const key = $(this).data("key");
-  if(navItemInitFunctions[key]){
+  if (navItemInitFunctions[key]) {
     navItemInitFunctions[key]();
   }
   $("#nav-content .nav-content.active").removeClass("active");
   $(`#nav-content .nav-content#${key}`).addClass("active");
-});
+})
 
 $(".intro-container #intro-options h2").on("click", function () {
   const key = $(this).data("key");
@@ -386,7 +386,7 @@ addTagInput.on('input', function () {
         success: function (data) {
           tagSuggestions.empty()
           if (data.data.length == 0) {
-            tagSuggestions.html('<span class="input-suggestion-label">No suggestions. Want to <span class="new-tag-suggestion">create it</span>?</span>')
+            tagSuggestions.html('<span class="input-suggestion-label">No suggestions. Want to <span class="link-suggestion">create it</span>?</span>')
           } else {
             let displayedTags = 0;
             data.data.forEach(e => {
@@ -400,17 +400,7 @@ addTagInput.on('input', function () {
                 }
               }
               if (isUnique) {
-                const tagElem = $(`<div class="tag" data-private=${e.private}>
-                <span class="material-icons">${e.private ? 'visibility_off' : 'visibility'}</span>
-                  <span class="tag-name">${e.name}</span>
-              </div>`)
-                const invertedColor = invertColorToBW(e.color)
-                tagElem.css({
-                  color: invertedColor,
-                  backgroundColor: '#' + e.color,
-                  borderColor: invertedColor
-                }).data('id', e.id)
-                tagSuggestions.append(tagElem)
+                tagSuggestions.append(createTagElement(e.name, e.color, e.private, e.id))
                 displayedTags++;
               }
             })
@@ -429,11 +419,22 @@ addTagInput.on('input', function () {
   }
 })
 
+function createTagElement(name, color, isPrivate, id) {
+  const tagElem = $(`<div class="tag" data-private=${isPrivate}><span class="material-icons">${isPrivate ? 'visibility_off' : 'visibility'}</span><span class="tag-name">${name}</span></div>`)
+  const invertedColor = invertColorToBW(color)
+  tagElem.css({
+    color: invertedColor,
+    backgroundColor: '#' + color,
+    borderColor: invertedColor
+  }).data('id', id)
+  return tagElem;
+}
+
 const reviewTags = $('#edit-review .tags')
 
 tagSuggestions.on('click', '.tag', function (e) {
-  if (!!reviewTags.has('i.tags-label').length) {
-    reviewTags.find('i.tags-label').hide()
+  if (!!reviewTags.has('i.empty-label').length) {
+    reviewTags.find('i.empty-label').hide()
   }
   const tag = $(e.target.closest('.tag'))
   tag.appendTo(reviewTags)
@@ -447,11 +448,11 @@ reviewTags.on('click', '.tag .material-icons.delete-tag', function (e) {
   const tag = $(e.target.closest('.tag'));
   tag.remove();
   if ($('.tag', reviewTags).length == 0) {
-    reviewTags.find('i.tags-label').show()
+    reviewTags.find('i.empty-label').show()
   }
 })
 
-$(document).on('click', '.new-tag-suggestion', function (e) {
+$(document).on('click', '#edit-review #tag-input-suggestions .link-suggestion', function (e) {
   newTagPopup.show();
   e.stopPropagation()
 })
@@ -568,7 +569,7 @@ function loadSiteReviews(sortOption, callbackOnFinish) {
     const requestData = {
       url: currentURL
     }
-    if(sortOption){
+    if (sortOption) {
       requestData.sortOption = sortOption
     }
     $.ajax({
@@ -580,14 +581,14 @@ function loadSiteReviews(sortOption, callbackOnFinish) {
         handleSiteReviewData(data.data)
         finishLoading(navContentArea)
         reviewsSection.show()
-        if(callbackOnFinish){
+        if (callbackOnFinish) {
           callbackOnFinish(true)
         }
       },
       error: function (data) {
         finishLoading()
         showErrorMessage("Failed to load website reviews. Try closing & reopening this extension", 10000)
-        if(callbackOnFinish){
+        if (callbackOnFinish) {
           callbackOnFinish(false)
         }
       }
@@ -621,9 +622,15 @@ function handleSiteReviewData(data) {
   if ((data.averageRating - numOfFullStars) >= 0.5) {
     firstFullStars.last().next('.material-icons').html('star_half')
   }
+
   console.log(data)
+
+  if (data.reviews.length == 0) {
+    reviews.html('<i class="empty-label">No reviews made yet. Want to <span class="link-suggestion page-director" data-key="edit-review">be the first</span>?</i>')
+  }
+
   data.reviews.forEach(review => {
-    const reviewElement = $(`<div class="review"><div class="review-metadata"><div class="review-author"></div><div class="review-date"></div></div><div class="review-stars"><span class="material-icons">star_border</span><span class="material-icons">star_border</span><span class="material-icons">star_border</span><span class="material-icons">star_border</span><span class="material-icons">star_border</span></div><div class="review-message"></div></div>`);
+    const reviewElement = $(`<div class="review"><div class="review-metadata"><div class="review-author"></div><div class="review-date"></div></div><div class="review-stars"><span class="material-icons">star_border</span><span class="material-icons">star_border</span><span class="material-icons">star_border</span><span class="material-icons">star_border</span><span class="material-icons">star_border</span></div><div class="review-message"></div><div class="tags-area"><div class="tags-label"><span class="material-icons">label</span><div>Tags:</div></div><div class="tags"></div></div></div>`);
     reviewElement.find('.review-metadata .review-author').text(review.author.username)
 
     const timeDifferenceMs = now - (review.createdDateTime * 1000)
@@ -641,6 +648,14 @@ function handleSiteReviewData(data) {
       prevTimeout = setTimeout(() => {
         $(this).text(timeDifferenceReadable)
       }, 500)
+    })
+    const reviewTagsArea = reviewElement.find('.tags-area')
+    const reviewTagsContainer = reviewElement.find('.tags')
+    if (review.tags.length == 0) {
+      reviewTagsArea.hide()
+    }
+    review.tags.forEach(tag => {
+      reviewTagsContainer.append(createTagElement(tag.name, tag.color, tag.private, tag.id))
     })
 
     reviewElement.find('.review-stars .material-icons').slice(0, review.stars).html('star')
@@ -660,10 +675,10 @@ reviewsSortPopup.on('click', function (e) {
   e.stopPropagation();
 })
 
-reviewsSortOptions.on('click', function(){
+reviewsSortOptions.on('click', function () {
   const option = $(this).find('.reviews-sort-option-label').text().trim().toLowerCase().trim()
-  loadSiteReviews(option, function(didSucceed){
-    if(didSucceed){
+  loadSiteReviews(option, function (didSucceed) {
+    if (didSucceed) {
       reviewsSortOptions.find('.material-icons').hide();
       reviewsSortOptions.filter(`[data-def="${option}"]`).find('.material-icons').show()
       console.log(reviewsSortOptions.filter(`[data-def="${option}"]`))
@@ -675,12 +690,7 @@ reviewsSortOptions.on('click', function(){
 /* general */
 
 function convertMsToReadable(ms) {
-  const seconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-  const weeks = Math.floor(days / 30);
-  const year = Math.floor(days / 365);
+  const seconds = Math.floor(ms / 1000), minutes = Math.floor(seconds / 60), hours = Math.floor(minutes / 60), days = Math.floor(hours / 24), weeks = Math.floor(days / 30), year = Math.floor(days / 365);
 
   if (year != 0) {
     return conditionallyPlurify(year, 'year') + ' ago'
@@ -723,8 +733,8 @@ $(document).on('click', '.expandable-popup-trigger', function (e) {
   e.stopPropagation();
 })
 
-function closeExpandablePopup(popup){
-  popup.fadeOut(100, function(){
+function closeExpandablePopup(popup) {
+  popup.fadeOut(100, function () {
     popup.css({
       width: 0,
       height: 0
