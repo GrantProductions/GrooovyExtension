@@ -1028,6 +1028,17 @@ hr {
   padding: 0 5px;
   font-family: "Roboto";
   box-sizing: border-box;
+  white-space: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+#explorer #url-bar::-webkit-scrollbar{
+  height: 5px;
+}
+
+#explorer #url-bar::-webkit-scrollbar-thumb{
+  height: 5px;
 }
 
 #explorer #url-bar .url-part {
