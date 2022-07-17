@@ -1,4 +1,4 @@
-const endpointURL = "http://localhost:8080/api/";
+const endpointURL = "http://localhost:8080/api/v1/";
 
 if (!chrome.storage || !chrome.tabs) {
   //simulate with localStorage
@@ -765,18 +765,13 @@ function processReviewsMetadata(data, container) {
 
 function processReviewsData(data, container, noReviewsLabelElement, includeReviewURL) {
   const now = Date.now();
-
-  if (data.length == 0) {
-    container.html(
-      '<i class="empty-label">No reviews made yet. Want to <span class="link-suggestion page-director" data-key="edit-review">be the first</span>?</i>'
-    );
-  }
+  console.log(data);
   container.empty()
   data.forEach((review) => {
     const reviewElement = $(
       `<div class="review"><div class="review-metadata"><div class="review-author"></div><div class="review-date"></div>${
       includeReviewURL ? '<div class="review-url"></div>' : ""
-      }</div><div class="review-stars"><span class="material-icons">star_border</span><span class="material-icons">star_border</span><span class="material-icons">star_border</span><span class="material-icons">star_border</span><span class="material-icons">star_border</span></div><div class="review-message"></div><div class="tags-area"><div class="tags-label"><span class="material-icons">sell</span><div>Tags:</div></div><div class="tags"></div></div></div>`
+      }</div><div class="review-stars"><span class="material-icons">star_border</span><span class="material-icons">star_border</span><span class="material-icons">star_border</span><span class="material-icons">star_border</span><span class="material-icons">star_border</span></div><div class="review-message"></div><div class="tags-area"><div class="tags-label"><span class="material-icons">sell</span><div>Tags:</div></div><div class="tags"></div></div><div class="review-voting"><div class="review-score"></div><div class="review-vote"><span class="material-icons-outlined" data-def="up">thumb_up</span><span class="material-icons-outlined" data-def="down">thumb_down</span></div></div></div>`
     );
     reviewElement
       .find(".review-metadata .review-author")
@@ -786,6 +781,12 @@ function processReviewsData(data, container, noReviewsLabelElement, includeRevie
         .find(".review-metadata .review-url")
         .text(decodeURI(review.url));
     }
+
+    if (review.userVote) {
+      reviewElement.find('.review-voting .review-vote span').eq(review.userVote == 'UP' ? 0 : 1).removeClass('material-icons-outlined').addClass('material-icons')
+    }
+
+    reviewElement.find('.review-voting .review-score').text(review.score)
 
     const timeDifferenceMs = now - review.createdDateTime * 1000;
     const timeDifferenceReadable = convertMsToReadable(timeDifferenceMs);
@@ -818,6 +819,7 @@ function processReviewsData(data, container, noReviewsLabelElement, includeRevie
       .html("star");
 
     reviewElement.find(".review-message").text(review.text);
+    reviewElement.data('id', review.id)
     container.append(reviewElement);
   });
   if (data.length == 0) {
@@ -1184,22 +1186,76 @@ explorerReviewsSortOptions.on('click', function (e) {
 })
 
 function loadExplorerReviews(url, sortOption, callback) {
-  loadSiteReviews(url, urlResults, urlResultsReviewsList, sortOption, callback, 
+  loadSiteReviews(url, urlResults, urlResultsReviewsList, sortOption, callback,
     `<i class="empty-label">No reviews for this site</i>`, true, true)
 }
 
-function highlightBarURLInExplorerReviews(){
-  $('#explorer .reviews .review .review-url').each(function(){
+function highlightBarURLInExplorerReviews() {
+  $('#explorer .reviews .review .review-url').each(function () {
     const url = $(this).text()
     const bold = $('<span class="highlighted-section"></b>')
     bold.text(barURL)
     const remainder = $('<span></span>')
     remainder.text(url.substring(barURL.length))
     $(this).empty().append(bold).append(remainder)
-})
+  })
 }
 
 /* general */
+
+$(document).on('click', '.reviews .review .review-voting .review-vote span', function () {
+  const voteButton = $(this)
+  const previouslySelectedVote = $(this).siblings('.material-icons')
+
+  const reviewScoreLabel = $(this).parent().prev('.review-score')
+  const review = voteButton.closest('.review')
+  const postId = review.data('id')
+  const action = voteButton.data('def')
+
+  if(previouslySelectedVote.length == 0){
+    if (voteButton.hasClass('material-icons-outlined')) {
+      if (action == "up") {
+        reviewScoreLabel.text(+reviewScoreLabel.text() + 1)
+      } else {
+        reviewScoreLabel.text(+reviewScoreLabel.text() - 1)
+      }
+      voteButton.removeClass('material-icons-outlined').addClass('material-icons')
+    } else {
+      if (action == "up") {
+        reviewScoreLabel.text(+reviewScoreLabel.text() - 1)
+      } else {
+        reviewScoreLabel.text(+reviewScoreLabel.text() + 1)
+      }
+      voteButton.removeClass('material-icons').addClass('material-icons-outlined')
+    }
+  }else{
+    const previousAction = previouslySelectedVote.data('def')
+    previouslySelectedVote.removeClass('material-icons').addClass('material-icons-outlined')
+
+    if(previousAction == "up"){
+      reviewScoreLabel.text(+reviewScoreLabel.text() - 2)
+    }else{
+      reviewScoreLabel.text(+reviewScoreLabel.text() + 2)
+    }
+    voteButton.removeClass('material-icons-outlined').addClass('material-icons')
+  }
+  $.ajax({
+    url: endpointURL + 'reviews/vote',
+    method: "POST",
+    data: {
+      postId,
+      action
+    },
+    headers: { "Authorization": "Bearer " + jwtToken },
+    success: function (data) {
+      console.log(data);
+    },
+    error: function (data) {
+      console.log(data)
+    }
+  })
+})
+
 
 $(document).on("click", function (e) {
   if (!e.target.closest("#profile-popup")) {
